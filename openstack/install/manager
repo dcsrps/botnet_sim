@@ -1,0 +1,35 @@
+#! /bin/bash
+
+echo "Manager installation script."
+apt update
+apt install -y python3-websockets python3-pandas
+
+echo "Setting up routes."
+route add -net 172.16.1.0/24 gw 192.168.1.51
+route add -net 172.16.2.0/24 gw 192.168.1.52
+
+route add -net 172.16.1.0/24 gw 192.168.1.51
+route add -net 172.16.2.0/24 gw 192.168.1.52
+route add -net 172.16.3.0/24 gw 192.168.1.53
+route add -net 172.16.4.0/24 gw 192.168.1.54
+route add -net 172.16.5.0/24 gw 192.168.1.55
+route add -net 172.16.6.0/24 gw 192.168.1.56
+route add -net 172.16.7.0/24 gw 192.168.1.57
+route add -net 172.16.8.0/24 gw 192.168.1.58
+route add -net 172.16.9.0/24 gw 192.168.1.59
+route add -net 172.16.10.0/24 gw 192.168.1.60
+
+route add -net 172.16.1.0/24 gw 192.168.1.51
+route add -net 172.16.2.0/24 gw 192.168.1.52
+route add -net 172.16.3.0/24 gw 192.168.1.53
+route add -net 172.16.4.0/24 gw 192.168.1.54
+route add -net 172.16.5.0/24 gw 192.168.1.55
+route add -net 172.16.6.0/24 gw 192.168.1.56
+route add -net 172.16.7.0/24 gw 192.168.1.57
+route add -net 172.16.8.0/24 gw 192.168.1.58
+route add -net 172.16.9.0/24 gw 192.168.1.59
+route add -net 172.16.10.0/24 gw 192.168.1.60
+
+route add -net 172.16.1.0/24 gw 192.168.1.51
+route add -net 172.16.2.0/24 gw 192.168.1.52
+

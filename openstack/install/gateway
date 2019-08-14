@@ -1,0 +1,13 @@
+#! /bin/bash
+
+echo "Gateway installation script."
+apt update
+apt install -y python3-scapy python3-pandas python3-websockets
+
+echo "Setting up the interfaces."
+ifconfig ens4 IP/24 up
+
+echo "Enabling port forwarding."
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+echo "Adding routes."

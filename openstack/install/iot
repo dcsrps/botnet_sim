@@ -1,0 +1,7 @@
+#! /bin/bash
+
+echo "IoT installation script."
+
+apt update
+apt install -y python3-websockets python3-scapy python3-paramiko
+
