@@ -351,7 +351,7 @@ async def comm_connect():
 signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
 try:
-    find_iot_devices(sys.argv[1])
+    find_iot_devices(sys.argv[3])
 except:
     logging.error('Enter IoT subnet as argument.')
     sys.exit(-1)
