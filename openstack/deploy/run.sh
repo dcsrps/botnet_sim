@@ -120,11 +120,12 @@ delete_all () {
 		((++count))
 	done
 
-	rm $tmp_gw $tmp_host
+	rm $tmp_gw $tmp_host $tmp_manager
 }
 
 tmp_gw="$gateway_install_script"_tmp
 tmp_host="$host_install_script"_tmp
+tmp_manager="$manager_install_script"_tmp
 
 cp $gateway_install_script $tmp_gw
 cp $host_install_script $tmp_host
@@ -147,20 +148,32 @@ while [ $counter -le $gw_count ];do
 done
 echo >> $tmp_host
 
+cat $tmp_host >> $tmp_manager
+
 echo "----------------------------"
-echo "Step 2. Creating Gateways."
+echo "Step 2. Adding Manager and C&C."
+echo "----------------------------"
+create_instance_with_network $base_image out manager $manager_install_script
+#create_instance_with_network $base_image out cnc $cnc_install_script
+
+servers=`openstack server list`
+manager_ip=`echo $servers | grep manager | awk '{ print $8 }' | cut -d "=" -f 2`
+#cnc_ip=`echo $servers | grep cnc | awk '{ print $8 }' | cut -d "=" -f 2`
+
+echo "----------------------------"
+echo "Step 3. Creating Gateways."
 echo "----------------------------"
 counter=1
 while [ $counter -le $gw_count ];do
 	cp $tmp_gw /tmp/gateway_$counter.sh
-	sed -i -e "s|IP|172.16.$counter.1|" -e "/172.16.$counter.0/d" /tmp/gateway_$counter.sh
+	sed -i -e "s|IP|172.16.$counter.1|g" -e "/172.16.$counter.0/d" -e "s|MANAGER|$manager_ip|"  /tmp/gateway_$counter.sh
 	echo  >> /tmp/gateway_$counter.sh
 	create_gateway_instance $base_image port_out_$counter port_gateway_$counter gateway_instance_$counter /tmp/gateway_$counter.sh
 	((counter++))
 done
 
 echo "----------------------------"
-echo "Step 3. Adding IoT devices."
+echo "Step 4. Adding IoT devices."
 echo "----------------------------"
 counter=1
 while [ $counter -le $gw_count ];do	
@@ -168,13 +181,6 @@ while [ $counter -le $gw_count ];do
 	((counter++))
 done
 
-cat $tmp_host >> $manager_install_script
-
-echo "----------------------------"
-echo "Step 4. Adding Manager and C&C."
-echo "----------------------------"
-create_instance_with_network $base_image out manager $manager_install_script
-#create_instance_with_network $base_image out cnc $cnc_install_script
 
 echo "----------------------------"
 echo "Step 5. Starting Packet Capture."

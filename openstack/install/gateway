@@ -10,4 +10,12 @@ ifconfig ens4 IP/24 up
 echo "Enabling port forwarding."
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
+echo "Setting environment variable."
+export monitor=IP
+export manager=MANAGER
+
+echo "Downloading gateway files."
+https://raw.githubusercontent.com/dcsrps/botnet_sim/master/gateway/gateway.py
+sudo python3 gateway.py &
+
 echo "Adding routes."
