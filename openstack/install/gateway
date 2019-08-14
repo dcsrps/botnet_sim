@@ -5,7 +5,8 @@ apt update
 apt install -y python3-scapy python3-pandas python3-websockets
 
 echo "Setting up the interfaces."
-ifconfig ens4 IP/24 up
+ETH=ens4
+ifconfig ETH IP/24 up
 
 echo "Enabling port forwarding."
 echo 1 > /proc/sys/net/ipv4/ip_forward
@@ -15,7 +16,9 @@ export monitor=IP
 export manager=MANAGER
 
 echo "Downloading gateway files."
-https://raw.githubusercontent.com/dcsrps/botnet_sim/master/gateway/gateway.py
-sudo python3 gateway.py &
+mkdir /opt/gateway/
+cd /opt/gateway/
+wget https://raw.githubusercontent.com/dcsrps/botnet_sim/master/gateway/gateway.py
+python3 gateway.py IP ETH &
 
 echo "Adding routes."

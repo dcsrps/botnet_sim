@@ -5,6 +5,8 @@ apt update
 apt install -y python3-websockets python3-pandas
 
 echo "Download manager file."
+mkdir /opt/manager/
+cd /opt/manager/
 wget https://raw.githubusercontent.com/dcsrps/botnet_sim/master/manager/manager.py
 python3 manager.py &
 

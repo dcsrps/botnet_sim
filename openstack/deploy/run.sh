@@ -2,7 +2,7 @@
 
 
 #No of Gateways, min and max iot devices per gateway
-gw_count=2
+gw_count=1
 min_iot=2
 max_iot=3
 
@@ -30,7 +30,7 @@ declare -A route_array
 
 
 create_network () {
-	echo "	Creating network: $1" 
+	echo "	Creating network: $1." 
 	openstack network create $1 > /dev/null 
 	openstack subnet create --network $1 --subnet-range $2 --gateway $3 --allocation-pool start=$4,end=$5 subnet_$1 > /dev/null
 }
@@ -39,30 +39,30 @@ create_port () {
 	openstack port create --network $1 --fixed-ip ip-address=$2 --disable-port-security $3 > /dev/null
 	if [ $? -eq 0 ]
 	then
-  		echo "	Successfully created port $3."
+  		echo "	Created port: $3."
 		port_array[$port_count]=$3
 		((++port_count))
 	else
-  		echo "	ERROR: Could not create port." >&2
+  		echo "	ERROR=> Could not create port: $3 ." >&2
 	fi
 }
 
 create_instance_with_port () {
-	echo " Creating instance named: $3"
+	echo "	Creating instance named: $3"
 	openstack server create --flavor ds512M --image $1 --nic port-id=$2 --user-data $4 --key-name $key_name $3 > /dev/null
 	instance_array[$instance_count]=$3
         ((++instance_count))
 }
 
 create_instance_with_network () {
-	echo " Creating instance named: $3"
+	echo "	Creating instance named: $3"
 	openstack server create --flavor ds512M --image $1 --network $2 --user-data $4 --key-name $key_name $3 > /dev/null
 	instance_array[$instance_count]=$3
         ((++instance_count))
 }
 
 create_gateway_instance () {
-	echo " Creating instance named: $4"
+	echo "	Creating instance named: $4"
 	openstack server create --flavor ds512M --image $1 --port $2  --port $3 --user-data $5 --key-name $key_name --wait $4 > /dev/null
         instance_array[$instance_count]=$4
         ((++instance_count))
@@ -77,7 +77,7 @@ add_iot_devices () {
 	local iots=0
 	iots=`shuf -i $min_iot-$max_iot -n 1`
 
-	echo " Adding $iots in network: $1."
+	echo "	Adding $iots iots in network: $1."
 
 	local count=1
 	while [ $count -le $iots ];do
@@ -120,15 +120,17 @@ delete_all () {
 		((++count))
 	done
 
-	rm $tmp_gw $tmp_host $tmp_manager
+	rm $tmp_gw $tmp_host $tmp_manager $tmp_iot
 }
 
-tmp_gw="$gateway_install_script"_tmp
-tmp_host="$host_install_script"_tmp
-tmp_manager="$manager_install_script"_tmp
+tmp_gw=/tmp/gw
+tmp_host=/tmp/host
+tmp_manager=/tmp/manager
+tmp_iot=/tmp/iot
 
 cp $gateway_install_script $tmp_gw
 cp $host_install_script $tmp_host
+cp $iot_install_script $tmp_iot
 
 echo "Step 1. Creating Networks."
 echo "----------------------------"
@@ -153,12 +155,14 @@ cat $tmp_host >> $tmp_manager
 echo "----------------------------"
 echo "Step 2. Adding Manager and C&C."
 echo "----------------------------"
-create_instance_with_network $base_image out manager $manager_install_script
-#create_instance_with_network $base_image out cnc $cnc_install_script
+managerip=192.168.1.200
+iotserver=192.168.1.201
 
-servers=`openstack server list`
-manager_ip=`echo $servers | grep manager | awk '{ print $8 }' | cut -d "=" -f 2`
-#cnc_ip=`echo $servers | grep cnc | awk '{ print $8 }' | cut -d "=" -f 2`
+create_port out $managerip port_manager
+create_port out $iotserver port_iot_server
+
+create_instance_with_port $base_image port_manager manager $manager_install_script
+create_instance_with_port $base_image port_iot_server iot_server $manager_install_script
 
 echo "----------------------------"
 echo "Step 3. Creating Gateways."
@@ -166,7 +170,7 @@ echo "----------------------------"
 counter=1
 while [ $counter -le $gw_count ];do
 	cp $tmp_gw /tmp/gateway_$counter.sh
-	sed -i -e "s|IP|172.16.$counter.1|g" -e "/172.16.$counter.0/d" -e "s|MANAGER|$manager_ip|"  /tmp/gateway_$counter.sh
+	sed -i -e "s|IP|172.16.$counter.1|g" -e "s|MANAGER|$managerip|"  -e "/172.16.$counter.0/d" /tmp/gateway_$counter.sh
 	echo  >> /tmp/gateway_$counter.sh
 	create_gateway_instance $base_image port_out_$counter port_gateway_$counter gateway_instance_$counter /tmp/gateway_$counter.sh
 	((counter++))
@@ -177,21 +181,22 @@ echo "Step 4. Adding IoT devices."
 echo "----------------------------"
 counter=1
 while [ $counter -le $gw_count ];do	
-	add_iot_devices gateway_$counter iot_$counter $iot_install_script	
+        sed -i -e "s|IOTSERVER|$iotserver|"  $tmp_iot
+	add_iot_devices gateway_$counter iot_$counter $tmp_iot	
 	((counter++))
 done
 
 
-echo "----------------------------"
-echo "Step 5. Starting Packet Capture."
-echo "----------------------------"
-portids=`openstack port list`
-counter=1
-while [ $counter -le $gw_count ];do
-	local tcpif=`echo $portids | grep port_gateway_$counter | awk '{ print substr($2,1,11) }'`
-	sudo ovs-tcpdump -i tap$tapif -w /tmp/gateway_$counter.pcap &
-        ((counter++))
-done
+#echo "----------------------------"
+#echo "Step 5. Starting Packet Capture."
+#echo "----------------------------"
+#portids=`openstack port list`
+#counter=1
+#while [ $counter -le $gw_count ];do
+#	tcpif=`echo $portids | grep port_gateway_$counter | awk '{ print substr($2,1,11) }'`
+#	sudo ovs-tcpdump -i tap$tapif -w /tmp/gateway_$counter.pcap &
+#        ((counter++))
+#done
 
 
 echo "----------------------------"

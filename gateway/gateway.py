@@ -30,15 +30,11 @@ COMM_HANDLE = None
 flow_queue = asyncio.Queue()
 
 try:
-    MOD_IP=os.environ['manager']
-    monitor_ip=os.environ['monitor']
+    MOD_IP=sys.argv[1]
+    INTERFACE=sys.argv[2]
 except:
-    logging.error('Environment variable: manager/monitor is not available.Exiting.')
+    logging.error('manager/interface not configured. Exiting.')
     sys.exit('Exiting.')
-
-
-tmp_cmd="ip a | grep {} | awk \'{print $NF}\'".format(monitor_ip)
-INTERFACE = subprocess.getoutput(tcp_cmd)
 
 logging.info('Interface: {}, Manager: {}'.format(INTERFACE, MOD_IP))
 
