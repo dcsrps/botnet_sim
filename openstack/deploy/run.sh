@@ -16,7 +16,7 @@ cnc_install_script=../install/cnc
 #dns_install_script=
 #victim_install_script=
 
-base_image=ubuntu18
+base_image=ubuntu_cloud_img
 key_name=iot_rhishi
 
 source ../../demo-openrc.sh
@@ -170,20 +170,19 @@ echo "----------------------------"
 counter=1
 while [ $counter -le $gw_count ];do
 	cp $tmp_gw /tmp/gateway_$counter.sh
-	sed -i -e "s|IP|172.16.$counter.1|g" -e "s|MANAGER|$managerip|"  -e "/172.16.$counter.0/d" /tmp/gateway_$counter.sh
+	sed -i -e "s|IP|172.16.$counter.1|g" -e "s|MANAGER|$managerip|" -e  "s|SUBNET|172.16.$counter.0/24|"  -e "/172.16.$counter.0/d" /tmp/gateway_$counter.sh
 	echo  >> /tmp/gateway_$counter.sh
 	create_gateway_instance $base_image port_out_$counter port_gateway_$counter gateway_instance_$counter /tmp/gateway_$counter.sh
 	((counter++))
 done
 
 echo "----------------------------"
-echo "Step 4. Adding IoT devices."
+echo "Step 4. Creating IoTs."
 echo "----------------------------"
 counter=1
-while [ $counter -le $gw_count ];do	
-        sed -i -e "s|IOTSERVER|$iotserver|"  $tmp_iot
-	add_iot_devices gateway_$counter iot_$counter $tmp_iot	
-	((counter++))
+while [ $counter -le $gw_count ];do
+        add_iot_devices gateway_$counter iot_$counter $tmp_iot
+        ((counter++))
 done
 
 

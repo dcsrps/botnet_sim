@@ -2,8 +2,18 @@
 
 echo "IoT installation script."
 
-export iotserver=IOTSERVER
+echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
+echo 1 > /proc/sys/net/ipv6/conf/default/disable_ipv6
 
-apt update
-apt install -y python3-websockets python3-scapy python3-paramiko
+if test -f /etc/lsb-release;then
+        echo "Ubuntu machine.";
+        echo "Setting up the interfaces."
+        apt-get -o Acquire::ForceIPv4=true update
+        apt-get install -y python3-scapy python3-paramiko python3-websockets
+else
+        echo "Not a Ubuntu machine.";
+        pip3 install scapy --user.
+        pip3 install paramiko --user.
+        pip3 install websockets --user.
+fi
 

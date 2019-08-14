@@ -1,24 +1,35 @@
 #! /bin/bash
 
 echo "Gateway installation script."
-apt update
-apt install -y python3-scapy python3-pandas python3-websockets
 
-echo "Setting up the interfaces."
-ETH=ens4
-ifconfig ETH IP/24 up
+echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
+echo 1 > /proc/sys/net/ipv6/conf/default/disable_ipv6
+
+if test -f /etc/lsb-release;then 
+	echo "Ubuntu machine."; 
+
+	apt-get -o Acquire::ForceIPv4=true update
+	export DEBIAN_FRONTEND=noninteractive
+	apt-get install -y python3-scapy python3-pandas python3-websockets
+	
+	echo "Setting up the interfaces."
+	ETH=ens4
+	ifconfig $ETH IP/24 up
+else 
+	echo "Not a Ubuntu machine.";
+	pip3 install scapy --user.
+	pip3 install pandas --user.
+	pip3 install websockets --user.
+fi
+
 
 echo "Enabling port forwarding."
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
-echo "Setting environment variable."
-export monitor=IP
-export manager=MANAGER
-
 echo "Downloading gateway files."
 mkdir /opt/gateway/
 cd /opt/gateway/
-wget https://raw.githubusercontent.com/dcsrps/botnet_sim/master/gateway/gateway.py
-python3 gateway.py IP ETH &
+curl -X GET https://raw.githubusercontent.com/dcsrps/botnet_sim/master/gateway/gateway.py > /opt/gateway/gateway.py
+python3 gateway.py IP $ETH SUBNET &
 
 echo "Adding routes."

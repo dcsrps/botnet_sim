@@ -1,13 +1,24 @@
 #! /bin/bash
 
 echo "Manager installation script."
-apt update
-apt install -y python3-websockets python3-pandas
+
+echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
+echo 1 > /proc/sys/net/ipv6/conf/default/disable_ipv6
+
+if test -f /etc/lsb-release; then
+	echo "System ubuntu."
+	apt-get -o Acquire::ForceIPv4=true update
+	apt-get install -y python3-websockets python3-pandas
+else
+	echo "System not ubuntu."
+	pip3 install websockets --user;
+	pip3 install panadas --user;
+fi
 
 echo "Download manager file."
 mkdir /opt/manager/
 cd /opt/manager/
-wget https://raw.githubusercontent.com/dcsrps/botnet_sim/master/manager/manager.py
+curl -X GET https://raw.githubusercontent.com/dcsrps/botnet_sim/master/manager/manager.py > /opt/manager/manager.py
 python3 manager.py &
 
 echo "Setting up routes."
