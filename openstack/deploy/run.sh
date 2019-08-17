@@ -1,22 +1,31 @@
 #!/bin/bash
 
 
+trap ctrl_c INT
+
+ctrl_c() {
+        echo "** Trapped CTRL-C"
+	delete_all
+}
+
 #No of Gateways, min and max iot devices per gateway
 gw_count=1
-min_iot=2
-max_iot=3
+min_iot=1
+max_iot=2
+init_bot_count=2
 
 manager_install_script=../install/manager
 gateway_install_script=../install/gateway
 host_install_script=../install/host
 iot_install_script=../install/iot
-#botnet_install_script=
+botnet_install_script=../install/bot
 cnc_install_script=../install/cnc
-#scanner_install_script=
+scanner_install_script=../install/scanner
 #dns_install_script=
 #victim_install_script=
 
-base_image=ubuntu_cloud_img
+base_image=Ubuntu-IoT
+iot_image=Singtel-IoT
 key_name=iot_rhishi
 
 source ../../demo-openrc.sh
@@ -49,21 +58,21 @@ create_port () {
 
 create_instance_with_port () {
 	echo "	Creating instance named: $3"
-	openstack server create --flavor ds512M --image $1 --nic port-id=$2 --user-data $4 --key-name $key_name $3 > /dev/null
+	openstack server create --flavor $5 --image $1 --nic port-id=$2 --user-data $4 --key-name $key_name $3 > /dev/null
 	instance_array[$instance_count]=$3
         ((++instance_count))
 }
 
 create_instance_with_network () {
 	echo "	Creating instance named: $3"
-	openstack server create --flavor ds512M --image $1 --network $2 --user-data $4 --key-name $key_name $3 > /dev/null
+	openstack server create --flavor $5 --image $1 --network $2 --user-data $4 --key-name $key_name $3 > /dev/null
 	instance_array[$instance_count]=$3
         ((++instance_count))
 }
 
 create_gateway_instance () {
 	echo "	Creating instance named: $4"
-	openstack server create --flavor ds512M --image $1 --port $2  --port $3 --user-data $5 --key-name $key_name --wait $4 > /dev/null
+	openstack server create --flavor $6 --image $1 --port $2  --port $3 --user-data $5 --key-name $key_name --wait $4 > /dev/null
         instance_array[$instance_count]=$4
         ((++instance_count))
 
@@ -81,7 +90,7 @@ add_iot_devices () {
 
 	local count=1
 	while [ $count -le $iots ];do
-		create_instance_with_network $base_image $1 $2$count $3
+		create_instance_with_network $iot_image $1 $2$count $3 cirros256
 		((++count))
 	done	
 }
@@ -119,18 +128,22 @@ delete_all () {
 		openstack network delete gateway_$count
 		((++count))
 	done
-
-	rm $tmp_gw $tmp_host $tmp_manager $tmp_iot
 }
 
 tmp_gw=/tmp/gw
 tmp_host=/tmp/host
 tmp_manager=/tmp/manager
 tmp_iot=/tmp/iot
+tmp_bot=/tmp/bot
+tmp_scanner=/tmp/scanner
+tmp_cnc=/tmp/cnc
 
 cp $gateway_install_script $tmp_gw
 cp $host_install_script $tmp_host
 cp $iot_install_script $tmp_iot
+cp $bot_install_script $tmp_bot
+cp $scanner_install_script $tmp_scanner
+cp $cnc_install_script $tmp_cnc
 
 echo "Step 1. Creating Networks."
 echo "----------------------------"
@@ -151,18 +164,23 @@ done
 echo >> $tmp_host
 
 cat $tmp_host >> $tmp_manager
+cat $tmp_host >> $tmp_bot
+cat $tmp_host >> $tmp_scanner
+cat $tmp_host >> $tmp_cnc
 
 echo "----------------------------"
-echo "Step 2. Adding Manager and C&C."
+echo "Step 2. Adding C&C."
 echo "----------------------------"
-managerip=192.168.1.200
-iotserver=192.168.1.201
+#iotserver=192.168.1.201
+#create_port out $iotserver port_iot_server
+cncip=192.168.1.201
+managerip=172.23.92.202
+dnsip=192.168.1.202
+#create_instance_with_port $base_image port_manager manager $manager_install_script ds1G
+#create_instance_with_port $base_image port_iot_server iot_server $manager_install_script ds1G
 
-create_port out $managerip port_manager
-create_port out $iotserver port_iot_server
-
-create_instance_with_port $base_image port_manager manager $manager_install_script
-create_instance_with_port $base_image port_iot_server iot_server $manager_install_script
+create_port out $cncip port_cnc
+create_instance_with_port $base_image port_cnc cnc $tmp_cnc ds1G
 
 echo "----------------------------"
 echo "Step 3. Creating Gateways."
@@ -172,7 +190,7 @@ while [ $counter -le $gw_count ];do
 	cp $tmp_gw /tmp/gateway_$counter.sh
 	sed -i -e "s|IP|172.16.$counter.1|g" -e "s|MANAGER|$managerip|" -e  "s|SUBNET|172.16.$counter.0/24|"  -e "/172.16.$counter.0/d" /tmp/gateway_$counter.sh
 	echo  >> /tmp/gateway_$counter.sh
-	create_gateway_instance $base_image port_out_$counter port_gateway_$counter gateway_instance_$counter /tmp/gateway_$counter.sh
+	create_gateway_instance $base_image port_out_$counter port_gateway_$counter gateway_instance_$counter /tmp/gateway_$counter.sh ds1G
 	((counter++))
 done
 
@@ -203,12 +221,19 @@ echo "Step 6. Creating IoT servers."
 echo "----------------------------"
 
 echo "----------------------------"
-echo "Step 7. Creating Scanner and Botnet."
+echo "Step 7. Creating Scanner and $init_bot_count bots."
 echo "----------------------------"
+create_instance_with_network $base_image out scanner $tmp_scanner ds1G
+counter=1
 
+sed -i -e "s|CNC|$cncip|" -e "s|DNS|$dnsip|" $tmp_bot
 
-read -rsn1 -p"Press any key to close all '-->";echo
-delete_all
+while [ $counter -le $init_bot_count ];do
+	create_instance_with_network $base_image out bot_$counter $tmp_bot ds1G
+        ((counter++))
+done
+
+read -rsn1 -p"Press ctrl-c to close all '-->";echo
 
 echo All done
 

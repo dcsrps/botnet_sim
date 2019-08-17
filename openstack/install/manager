@@ -8,7 +8,9 @@ echo 1 > /proc/sys/net/ipv6/conf/default/disable_ipv6
 if test -f /etc/lsb-release; then
 	echo "System ubuntu."
 	apt-get -o Acquire::ForceIPv4=true update
-	apt-get install -y python3-websockets python3-pandas
+	export DEBIAN_FRONTEND=noninteractive
+	DEBIAN_FRONTEND=noninteractive
+	apt-get -o Acquire::ForceIPv4=true install -y python3-websockets python3-pandas
 else
 	echo "System not ubuntu."
 	pip3 install websockets --user;

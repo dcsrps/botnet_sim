@@ -6,7 +6,7 @@ import os
 from scapy.config import conf
 from scapy.all import sniff, Ether, ARP, srp, conf 
 from scapy.data import ETH_P_ALL
-import pandas as pd
+#import pandas as pd
 import logging
 import sys
 import signal

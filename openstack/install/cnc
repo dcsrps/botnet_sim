@@ -1,0 +1,21 @@
+#! /bin/bash
+
+echo "C&C installation script."
+
+echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
+echo 1 > /proc/sys/net/ipv6/conf/default/disable_ipv6
+
+tmpdir=/opt/bot
+mkdir $tmpdir
+curl -X GET https://raw.githubusercontent.com/dcsrps/botnet_sim/master/bot/bot_multitry.py > $tmpdir/bot.py
+cd $tmpdir
+python3 -m http.server &
+
+echo "Download cnc file."
+tmpdir=/opt/cnc
+mkdir $tmpdir
+curl -X GET https://raw.githubusercontent.com/dcsrps/botnet_sim/master/cnc/cnc.py > $tmpdir/cnc.py
+cd $tmpdir
+python3 cnc.py &
+
+echo "Setting up routes."
