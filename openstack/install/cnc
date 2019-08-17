@@ -16,6 +16,6 @@ tmpdir=/opt/cnc
 mkdir $tmpdir
 curl -X GET https://raw.githubusercontent.com/dcsrps/botnet_sim/master/cnc/cnc.py > $tmpdir/cnc.py
 cd $tmpdir
-python3 cnc.py &
+python3 cnc.py END &
 
 echo "Setting up routes."

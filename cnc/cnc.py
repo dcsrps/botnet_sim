@@ -14,7 +14,16 @@ SCANNER = 'scan'
 ATTACK = 'attack'
 PWDS = 52
 
-IPS = '172.16.0.0/16'
+start=1
+try:
+    end=sys.argv[0]
+except:
+    end=10
+
+for i in range(start, end+1):
+    IPS='172.16.'+str(i)+'.0/24,'
+
+IPS = IPS[:-1]
 
 GUI_CONN = {
             SCANNER: {'ws': None, 'connected': False, 'handles':{}, 'init': {'frequency': 2, 'ip': IPS, 'port': '22'}},
