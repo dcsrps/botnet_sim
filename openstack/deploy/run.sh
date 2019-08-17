@@ -13,6 +13,7 @@ gw_count=2
 min_iot=1
 max_iot=2
 init_bot_count=2
+managerip=172.23.94.153
 
 manager_install_script=../install/manager
 gateway_install_script=../install/gateway
@@ -147,7 +148,7 @@ cp $bot_install_script $tmp_bot
 cp $scanner_install_script $tmp_scanner
 cp $cnc_install_script $tmp_cnc
 
-echo "Step 1. Creating Networks."
+echo "Step 1. Creating Networks and adding IoTs."
 echo "----------------------------"
 
 counter=1
@@ -160,6 +161,9 @@ while [ $counter -le $gw_count ];do
 
 	echo route add -net 172.16.$counter.0/24 gw 192.168.1.$a >> $tmp_gw
 	echo route add -net 172.16.$counter.0/24 gw 192.168.1.$a >> $tmp_host
+
+	add_iot_devices gateway_$counter iot_$counter $tmp_iot
+
 	((counter++))
 
 done
@@ -176,7 +180,6 @@ echo "----------------------------"
 #iotserver=192.168.1.201
 #create_port out $iotserver port_iot_server
 cncip=192.168.1.201
-managerip=172.23.92.202
 dnsip=192.168.1.202
 #create_instance_with_port $base_image port_manager manager $manager_install_script ds2G
 #create_instance_with_port $base_image port_iot_server iot_server $manager_install_script ds2G
@@ -195,15 +198,6 @@ while [ $counter -le $gw_count ];do
 	echo  >> /tmp/gateway_$counter.sh
 	create_gateway_instance $base_image port_out_$counter port_gateway_$counter gateway_instance_$counter /tmp/gateway_$counter.sh ds2G
 	((counter++))
-done
-
-echo "----------------------------"
-echo "Step 4. Creating IoTs."
-echo "----------------------------"
-counter=1
-while [ $counter -le $gw_count ];do
-        add_iot_devices gateway_$counter iot_$counter $tmp_iot
-        ((counter++))
 done
 
 

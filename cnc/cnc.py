@@ -17,7 +17,7 @@ PWDS = 52
 
 start=1
 try:
-    end=sys.argv[1]
+    end=int(sys.argv[1])
 except:
     end=10
 
@@ -28,7 +28,7 @@ for i in range(start, end+1):
 IPS = IPS[:-1]
 
 GUI_CONN = {
-            SCANNER: {'ws': None, 'connected': False, 'handles':{}, 'init': {'frequency': 2, 'ip': IPS, 'port': '22'}},
+            SCANNER: {'ws': None, 'connected': False, 'handles':{}, 'init': {'frequency': 2, 'ip': IPS, 'port': '22,23,2323,443,80'}},
             ATTACK: {'ws': None, 'connected': False, 'handles':{}, 'init': {'frequency': 2, 'ip': IPS, 'port': '22'}}
             }
 logging.basicConfig(level=logging.INFO, filename='log_cnc.log', filemode='a', format='%(name)s - %(asctime)s - %(levelname)s  - %(message)s')
@@ -106,7 +106,7 @@ async def process_msg(msg, module):
     msg = json.loads(msg)
 
     if not 'event' in msg.keys():
-        print("Event not in the message.")
+        logging.info("Event not in the message.")
         return
 
     event = msg['event']
@@ -128,7 +128,7 @@ async def process_msg(msg, module):
         await command_to_device(msg, SCANNER)
     else:
         logging.error(msg)
-        print("Unknown event {} received.".format(event))
+        logging.info("Unknown event {} received.".format(event))
 
 # Receiver events.
 async def recv_module_event(websocket, path):
@@ -153,7 +153,7 @@ async def recv_module_event(websocket, path):
     try:
         while(True) :
             msg = await websocket.recv()
-            print("Received msg {}".format(msg))
+            logging.info("Received msg {}".format(msg))
 
             await process_msg(msg, websocket)
 
