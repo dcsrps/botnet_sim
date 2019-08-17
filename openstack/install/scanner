@@ -10,6 +10,6 @@ tmpdir=/opt/scanner
 mkdir $tmpdir
 curl -X GET https://raw.githubusercontent.com/dcsrps/botnet_sim/master/scanner/scanner.py > $tmpdir/scanner.py
 cd $tmpdir
-python3 scanner.py &
+python3 scanner.py CNC &
 
 echo "Setting up routes."

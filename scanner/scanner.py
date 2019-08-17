@@ -10,11 +10,16 @@ import socket
 from random import randint, choice
 from scapy.all import IP, TCP, sr1, RandShort
 from uuid import getnode as get_mac
+import sys
 
 MY_ADDR = "0.0.0.0"
 MODULE = 'scanner_'+str(get_mac())
 
-MOD_IP = "137.132.153.220"
+try:
+    MOD_IP = sys.argv[1]
+except:
+    sys.exit('MOD_IP missing. Exiting.')    
+
 MOD_PORT = 4567
 
 COMM_HANDLE = None

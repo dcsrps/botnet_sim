@@ -7,6 +7,7 @@ import websockets
 import logging
 import random
 import math
+import sys
 
 MOD_PORT = 4567
 
@@ -16,12 +17,13 @@ PWDS = 52
 
 start=1
 try:
-    end=sys.argv[0]
+    end=sys.argv[1]
 except:
     end=10
 
+IPS=''
 for i in range(start, end+1):
-    IPS='172.16.'+str(i)+'.0/24,'
+    IPS+='172.16.'+str(i)+'.0/24,'
 
 IPS = IPS[:-1]
 

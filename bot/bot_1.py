@@ -18,17 +18,11 @@ from uuid import getnode as get_mac
 
 
 try:
-    MOD_ACTUAL_IP = sys.argv[1]
+    MOD_IP = sys.argv[1]
     OUR_DNS = sys.argv[2]
 except:
-    exit('MOD_ACTUAL_IP or OUR_DNS value is not supplied.')
+    exit('MOD_IP or OUR_DNS value is not supplied.')
 
-
-MOD_IP_LIST = [MOD_ACTUAL_IP, '192.168.1.152', '192.168.1.253', '192.168.1.54', 
-        '192.168.1.55', '192.168.1.56', '192.168.1.57', '192.168.1.158', 
-        '192.168.1.59', '192.168.1.60', '192.168.1.61', '192.168.1.62'
-        ] 
-MOD_IP = None
 
 LOADER_PORT = 8000
 MY_IP = "0.0.0.0"
@@ -369,24 +363,7 @@ async def send_event(event, data):
 
 # Connect event.
 async def comm_connect():
-    global COMM_HANDLE, MY_ADDR, MOD_IP
-
-    while MOD_IP is None:
-        shuffle(MOD_IP_LIST)
-            
-        for an_ip in MOD_IP_LIST:
-            
-            p = IP(dst = an_ip)/TCP(sport=RandShort(), dport=MOD_PORT, flags='S')    
-            resp = sr1(p, timeout=2, verbose=0)
-            if resp is None:
-                pass
-            elif resp.haslayer(TCP):
-                if resp.getlayer(TCP).flags == 0x12:
-                    MOD_IP = an_ip
-                    break
-                elif resp.getlayer(TCP).flags == 0x14:
-                    pass
-            
+    global COMM_HANDLE, MY_ADDR, MOD_IP 
     try:
         COMM_HANDLE = await websockets.connect('ws://{}:{}/{}'.format(MOD_IP, MOD_PORT, MODULE))
         MY_ADDR = COMM_HANDLE.local_address[0]

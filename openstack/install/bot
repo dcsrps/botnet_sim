@@ -8,7 +8,7 @@ echo 1 > /proc/sys/net/ipv6/conf/default/disable_ipv6
 echo "Download bot file."
 tmpdir=/opt/bot
 mkdir $tmpdir
-curl -X GET https://raw.githubusercontent.com/dcsrps/botnet_sim/master/bot/bot_multitry.py > $tmpdir/bot.py
+curl -X GET https://raw.githubusercontent.com/dcsrps/botnet_sim/master/bot/bot_1.py > $tmpdir/bot.py
 cd $tmpdir
 python3 bot.py CNC DNS &
 

@@ -226,7 +226,10 @@ echo "----------------------------"
 echo "----------------------------"
 echo "Step 7. Creating Scanner and $init_bot_count bots."
 echo "----------------------------"
+
+sed -i -e "s|CNC|$cncip|" $tmp_scanner
 create_instance_with_network $base_image out scanner $tmp_scanner ds2G
+
 counter=1
 
 sed -i -e "s|CNC|$cncip|" -e "s|DNS|$dnsip|" $tmp_bot
