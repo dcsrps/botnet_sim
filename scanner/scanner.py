@@ -11,7 +11,8 @@ from random import randint, choice
 from scapy.all import IP, TCP, sr1, RandShort
 from uuid import getnode as get_mac
 import sys
-
+import signal
+signal.signal(signal.SIGHUP, signal.SIG_IGN)
 MY_ADDR = "0.0.0.0"
 MODULE = 'scanner_'+str(get_mac())
 

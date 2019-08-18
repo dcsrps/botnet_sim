@@ -1,0 +1,36 @@
+root - 2019-08-17 21:51:29,318 - INFO  - Module gateway_274973438894952, Address ('137.132.153.220', 54170)
+root - 2019-08-17 21:52:50,888 - INFO  - Module gateway_274973443064228, Address ('137.132.153.220', 33066)
+asyncio - 2019-08-17 22:12:29,660 - ERROR  - Fatal read error on socket transport
+protocol: <websockets.server.WebSocketServerProtocol object at 0x1151ba0b8>
+transport: <_SelectorSocketTransport fd=10 read=polling write=<idle, bufsize=0>>
+Traceback (most recent call last):
+  File "/usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/asyncio/selector_events.py", line 801, in _read_ready__data_received
+    data = self._sock.recv(self.max_size)
+TimeoutError: [Errno 60] Operation timed out
+websockets.protocol - 2019-08-17 22:12:29,666 - ERROR  - Error in data transfer
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.7/site-packages/websockets/protocol.py", line 795, in transfer_data
+    message = await self.read_message()
+  File "/usr/local/lib/python3.7/site-packages/websockets/protocol.py", line 863, in read_message
+    frame = await self.read_data_frame(max_size=self.max_size)
+  File "/usr/local/lib/python3.7/site-packages/websockets/protocol.py", line 938, in read_data_frame
+    frame = await self.read_frame(max_size)
+  File "/usr/local/lib/python3.7/site-packages/websockets/protocol.py", line 1018, in read_frame
+    extensions=self.extensions,
+  File "/usr/local/lib/python3.7/site-packages/websockets/framing.py", line 121, in read
+    data = await reader(2)
+  File "/usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/asyncio/streams.py", line 679, in readexactly
+    await self._wait_for_data('readexactly')
+  File "/usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/asyncio/streams.py", line 473, in _wait_for_data
+    await self._waiter
+  File "/usr/local/Cellar/python/3.7.3/Frameworks/Python.framework/Versions/3.7/lib/python3.7/asyncio/selector_events.py", line 801, in _read_ready__data_received
+    data = self._sock.recv(self.max_size)
+TimeoutError: [Errno 60] Operation timed out
+root - 2019-08-17 22:22:37,174 - INFO  - Module gateway_274973445120916, Address ('137.132.153.220', 50488)
+root - 2019-08-18 16:08:38,643 - INFO  - Module gateway_274973445699085, Address ('137.132.153.220', 54452)
+root - 2019-08-18 16:11:18,677 - INFO  - Received msg: {"timestamp": 1566115767.5552022, "event": "EVT_CONN_ANOMALY", "sender": "gateway_274973445699085", "receiver": "master", "data": {"key_val": {"172.16.1.3,192.168.1.11,6,22,1,37252": {"outsize": 40, "insize": 60, "incount": 1, "outcount": 1, "pcount": 0, "scount": 1, "time": 1566115762.742769}}}}
+root - 2019-08-18 16:11:18,680 - INFO  - Gateway - gateway_274973445699085 - Data size - 1 - Total keys - 1.0/1.0
+root - 2019-08-18 16:11:38,729 - INFO  - Received msg: {"timestamp": 1566115787.55643, "event": "EVT_CONN_ANOMALY", "sender": "gateway_274973445699085", "receiver": "master", "data": {"key_val": {"172.16.1.3,192.168.1.11,6,22,1,37254": {"outsize": 40, "insize": 60, "incount": 1, "outcount": 1, "pcount": 0, "scount": 1, "time": 1566115783.39348}, "172.16.1.3,192.168.1.11,6,22,1,37256": {"outsize": 40, "insize": 60, "incount": 1, "outcount": 1, "pcount": 0, "scount": 1, "time": 1566115784.131499}, "172.16.1.3,192.168.1.11,6,22,1,37258": {"outsize": 40, "insize": 60, "incount": 1, "outcount": 1, "pcount": 0, "scount": 1, "time": 1566115784.595259}, "172.16.1.3,192.168.1.11,6,22,1,37260": {"outsize": 40, "insize": 60, "incount": 1, "outcount": 1, "pcount": 0, "scount": 1, "time": 1566115785.04338}, "172.16.1.3,192.168.1.11,6,22,1,37262": {"outsize": 40, "insize": 60, "incount": 1, "outcount": 1, "pcount": 0, "scount": 1, "time": 1566115785.426575}, "172.16.1.3,192.168.1.11,6,22,1,37264": {"outsize": 40, "insize": 60, "incount": 1, "outcount": 1, "pcount": 0, "scount": 1, "time": 1566115785.859434}, "172.16.1.3,192.168.1.11,6,22,1,37266": {"outsize": 40, "insize": 60, "incount": 1, "outcount": 1, "pcount": 0, "scount": 1, "time": 1566115786.274987}, "172.16.1.3,192.168.1.11,6,22,1,37268": {"outsize": 40, "insize": 60, "incount": 1, "outcount": 1, "pcount": 0, "scount": 1, "time": 1566115786.659337}, "172.16.1.3,192.168.1.11,6,22,1,37270": {"outsize": 40, "insize": 60, "incount": 1, "outcount": 1, "pcount": 0, "scount": 1, "time": 1566115787.059281}, "172.16.1.3,192.168.1.11,6,22,1,37272": {"outsize": 40, "insize": 60, "incount": 1, "outcount": 1, "pcount": 0, "scount": 1, "time": 1566115787.426896}}}}
+root - 2019-08-18 16:11:38,729 - INFO  - Gateway - gateway_274973445699085 - Data size - 10 - Total keys - 11.0/10.0
+root - 2019-08-18 16:11:58,679 - INFO  - Received msg: {"timestamp": 1566115807.5617092, "event": "EVT_CONN_ANOMALY", "sender": "gateway_274973445699085", "receiver": "master", "data": {"key_val": {"172.16.1.3,192.168.1.11,6,22,1,37274": {"outsize": 40, "insize": 60, "incount": 1, "outcount": 1, "pcount": 0, "scount": 1, "time": 1566115787.796588}, "172.16.1.3,192.168.1.11,6,22,1,37276": {"outsize": 40, "insize": 60, "incount": 1, "outcount": 1, "pcount": 0, "scount": 1, "time": 1566115788.099437}, "172.16.1.3,192.168.1.11,6,22,1,37278": {"outsize": 40, "insize": 60, "incount": 1, "outcount": 1, "pcount": 0, "scount": 1, "time": 1566115788.461242}, "172.16.1.3,192.168.1.11,6,22,1,37280": {"outsize": 40, "insize": 60, "incount": 1, "outcount": 1, "pcount": 0, "scount": 1, "time": 1566115788.956792}}}}
+root - 2019-08-18 16:11:58,682 - INFO  - Gateway - gateway_274973445699085 - Data size - 4 - Total keys - 15.0/4.0

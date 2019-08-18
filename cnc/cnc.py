@@ -8,6 +8,9 @@ import logging
 import random
 import math
 import sys
+import signal 
+
+signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
 MOD_PORT = 4567
 
@@ -26,11 +29,13 @@ for i in range(start, end+1):
     IPS+='172.16.'+str(i)+'.0/24,'
 
 IPS = IPS[:-1]
+FREQ = 1
 
 GUI_CONN = {
-            SCANNER: {'ws': None, 'connected': False, 'handles':{}, 'init': {'frequency': 2, 'ip': IPS, 'port': '22,23,2323,443,80'}},
-            ATTACK: {'ws': None, 'connected': False, 'handles':{}, 'init': {'frequency': 2, 'ip': IPS, 'port': '22'}}
+            SCANNER: {'ws': None, 'connected': False, 'handles':{}, 'init': {'frequency': FREQ, 'ip': IPS, 'port': '22,23,2323,443,80'}},
+            ATTACK: {'ws': None, 'connected': False, 'handles':{}, 'init': {'frequency': FREQ, 'ip': IPS, 'port': '22'}}
             }
+
 logging.basicConfig(level=logging.INFO, filename='log_cnc.log', filemode='a', format='%(name)s - %(asctime)s - %(levelname)s  - %(message)s')
 
 # This msg is sent as soon as a new bot or scanner connects to cnc.

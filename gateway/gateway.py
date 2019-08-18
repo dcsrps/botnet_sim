@@ -12,7 +12,8 @@ import sys
 import signal
 from uuid import getnode as get_mac
 import subprocess
-
+import signal
+signal.signal(signal.SIGHUP, signal.SIG_IGN)
 # Constants
 MOD_PORT = 11001
 MOD_IP = "192.168.0.99"
@@ -145,12 +146,16 @@ class packet_to_dict(object):
         return ip
 
     def _extract(self):
- 
-        smac = self._pkt['Ether'].src
-        dmac = self._pkt['Ether'].dst
 
-        src = self._pkt['IP'].src
-        dst = self._pkt['IP'].dst
+        try: 
+            smac = self._pkt['Ether'].src
+            dmac = self._pkt['Ether'].dst
+
+            src = self._pkt['IP'].src
+            dst = self._pkt['IP'].dst
+        except:
+            logging.error(sys.exc_info())
+            return None
 
         if src in self._device_mac_ip.values():
             direction = 0

