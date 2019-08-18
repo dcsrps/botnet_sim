@@ -106,7 +106,7 @@ def int_handler(sig, frame):
 # Kill ssh processes. 
 def kill_processes():
     # kill dropbear ssh. Replace with other version.
-    os.system('kill -9 `ps ax | grep dropbear | grep -v grep | awk '{ print $1}'`')
+    os.system("kill -9 `ps ax | grep dropbear | grep -v grep | awk '{ print $1}'`")
     if os.path.isfile(LOCK_FILE):
         sys.exit("Already Running.")
     else:
