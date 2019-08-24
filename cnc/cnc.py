@@ -7,6 +7,7 @@ import websockets
 import logging
 import random
 import signal
+import sys
 from datetime import datetime
 
 signal.signal(signal.SIGHUP, signal.SIG_IGN)
