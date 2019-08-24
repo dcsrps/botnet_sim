@@ -15,8 +15,8 @@ import subprocess
 import signal
 signal.signal(signal.SIGHUP, signal.SIG_IGN)
 # Constants
-MOD_PORT = 11001
-MOD_IP = "192.168.0.99"
+MOD_PORT = 12001
+MOD_IP = "172.16.131.64"
 MODULE = 'gateway_'+str(get_mac())
 INTERFACE = "ens4"
 SLEEP_DURATION = 20
@@ -26,18 +26,19 @@ FIM_TABLE_SIZE = 200
 
 # Variables
 logging.basicConfig(level=logging.INFO, filename=MODULE+'.log', filemode='a', format='%(name)s - %(asctime)s - %(levelname)s  - %(message)s')
-GROUND_TRUTH = {}
+GROUND_TRUTH = []
 COMM_HANDLE = None
 flow_queue = asyncio.Queue()
 
 try:
-    MOD_IP=sys.argv[1]
-    INTERFACE=sys.argv[2]
+    MOD_IP = sys.argv[1]
+    INTERFACE = sys.argv[2]
+    IOT_SUBNET = sys.argv[3]
 except:
-    logging.error('manager/interface not configured. Exiting.')
+    logging.error('mod_ip/interface/iot_subnet not configured. Exiting.')
     sys.exit('Exiting.')
 
-logging.info('Interface: {}, Manager: {}'.format(INTERFACE, MOD_IP))
+logging.info('Interface: {}, Manager: {}, Subnet:{}'.format(INTERFACE, MOD_IP, IOT_SUBNET))
 
 def find_iot_devices(i_network):
     global IOT_DEVICE_DICT
@@ -114,6 +115,8 @@ class packet_to_dict(object):
     def add(self, i_pkt):
         self._pkt = i_pkt
         self._check_dns()
+        if len(self._conn_table) == 65000:
+            logging.error('Connection table entries reached maximum.')
         return self._extract()
 
     def _check_dns(self):
@@ -255,8 +258,10 @@ async def conn_task():
             store_handle._empty_fim()
 
 
-def set_ground_truth(i_file):
-    
+def set_ground_truth(i_data):
+    global GROUND_TRUTH
+    GROUND_TRUTH = i_data
+    """
     try:
         ret_dict = {}
         df = pd.read_csv(i_file, header=0) 
@@ -269,7 +274,7 @@ def set_ground_truth(i_file):
         return {}
 
     logging.debug("Ground truth is {}".format(GROUND_TRUTH))
-
+    """
 
 def process_packet():
     l_pkt = SNIFF_SOCK.recv()
@@ -277,7 +282,10 @@ def process_packet():
     l_ret = pkt_dict.add(l_pkt)
 
     if not  l_ret is None:
-        if not l_ret['key'] in GROUND_TRUTH.keys():
+        #if not l_ret['key'] in GROUND_TRUTH.keys():
+        ## Look for destinations.
+        temp = l_ret['key'].split(',')
+        if not temp[1] in GROUND_TRUTH:
             asyncio.ensure_future(flow_queue.put(l_ret))
         else:
             # add behavioral case
@@ -356,7 +364,7 @@ async def comm_connect():
 signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
 try:
-    find_iot_devices(sys.argv[3])
+    find_iot_devices(IOT_SUBNET)
 except:
     logging.error('Enter IoT subnet as argument.')
     sys.exit(-1)
