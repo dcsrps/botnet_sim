@@ -246,6 +246,8 @@ async def process_msg(msg, module):
         pass
     elif event == "EVT_QUERY_RESPONSE":
         pass
+    elif event == "EVT_GW_DEVICES":
+        logging.info("Gateway: {}, devices: {}".format(msg['sender'], payload))
     else:
         logging.error('Unknown event received.')
 
@@ -266,7 +268,11 @@ async def recv_module_event(websocket, path):
 
     except websockets.exceptions.ConnectionClosed:
         del CONNECTION_TABLE[module]
-        logging.debug('Connection closed by module: {}'.format(module))    
+        logging.info('Connection closed by module: {}'.format(module))   
+
+    except:
+        logging.info('Exception in recv_module_event')
+        logging.info(sys.exc_info())   
         
 
 sql = sqliteDb("/tmp/db.db")

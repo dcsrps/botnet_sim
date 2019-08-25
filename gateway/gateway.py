@@ -48,6 +48,9 @@ def find_iot_devices(i_network):
     for i in ans:
         IOT_DEVICE_DICT[i[1]['ARP'].hwsrc] = i[1]['ARP'].psrc
 
+    logging.info('Found these IoT devices: {}'.format(IOT_DEVICE_DICT))
+    asyncio.ensure_future(send_event('EVT_GW_DEVICES', list(IOT_DEVICE_DICT.values())))
+
 
 class storage_handler(object):
     def __init__(self):
@@ -115,7 +118,7 @@ class packet_to_dict(object):
     def add(self, i_pkt):
         self._pkt = i_pkt
         self._check_dns()
-        if len(self._conn_table) == 65000:
+        if len(self._conn_table) == 5000:
             logging.error('Connection table entries reached maximum.')
         return self._extract()
 
@@ -145,11 +148,10 @@ class packet_to_dict(object):
                     ip = domain_name
                 except:
                     break
-
         return ip
 
     def _extract(self):
-
+        spoof = False
         try: 
             smac = self._pkt['Ether'].src
             dmac = self._pkt['Ether'].dst
@@ -167,6 +169,7 @@ class packet_to_dict(object):
         elif smac in self._device_mac_ip.keys():
             direction = 0
             logging.info('Spoof: {} {} {} {}'.format(smac, dmac, src,dst))
+            spoof = True
         else:
             direction = None
 
@@ -194,6 +197,11 @@ class packet_to_dict(object):
             else:
                 sport = 0
                 dport = 0
+
+            if spoof:
+                key = sip+","+dip+","+str(proto)+","+str(dport)+","+str(direction)
+                return {'key': key, 'values': {'sport': sport, 'insize': 0, 'outsize': length, 'incount': 0,\
+                     'outcount': 1, 'pcount':pflag, 'scount':sflag, 'time':time}}
 
             temp_key_1 = sip+","+dip+","+str(proto)+","+str(sport)+","+str(dport)
             temp_key_2 = dip+","+sip+","+str(proto)+","+str(dport)+","+str(sport)
@@ -355,6 +363,7 @@ async def comm_connect():
     try:
         COMM_HANDLE = await websockets.connect('ws://{}:{}/{}'.format(MOD_IP, MOD_PORT, MODULE))
         logging.debug("Connected to Master")
+        find_iot_devices(IOT_SUBNET)
         asyncio.ensure_future(recv_event())
     except:
         COMM_HANDLE = None
@@ -362,14 +371,6 @@ async def comm_connect():
         asyncio.ensure_future(comm_connect())
 
 signal.signal(signal.SIGHUP, signal.SIG_IGN)
-
-try:
-    find_iot_devices(IOT_SUBNET)
-except:
-    logging.error('Enter IoT subnet as argument.')
-    sys.exit(-1)
-
-logging.info('Found these IoT devices: {}'.format(IOT_DEVICE_DICT))
 
 pkt_dict = packet_to_dict(IOT_DEVICE_DICT)
 store_handle = storage_handler()
