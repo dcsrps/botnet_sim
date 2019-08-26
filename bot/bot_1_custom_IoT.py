@@ -262,10 +262,10 @@ async def scan():
     while True:
         max_ips = 20
         if SCAN_RATE == 0:
-            max_ips = 5
+            max_ips = 4
             duration = 15.0
         elif SCAN_RATE == 1:
-            max_ips = 7
+            max_ips = 6
             duration = 7.0
         elif SCAN_RATE == 2:
             max_ips = 10
