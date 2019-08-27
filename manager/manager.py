@@ -22,7 +22,7 @@ lock = asyncio.Lock()
 LAST_KEY_COUNT = 0.0
 TOTAL_KEYS = 0.0
 
-logging.basicConfig(level=logging.INFO, filename='mgr.log', filemode='a', format='%(name)s - %(asctime)s - %(levelname)s  - %(message)s')
+logging.basicConfig(level=logging.INFO, filename='log_manager.log', filemode='a', format='%(name)s - %(asctime)s - %(levelname)s  - %(message)s')
 
 class sqliteDb(object):
     def __init__(self, db_path):

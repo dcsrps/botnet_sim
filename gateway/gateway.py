@@ -6,7 +6,7 @@ import os
 from scapy.config import conf
 from scapy.all import sniff, Ether, ARP, srp, conf 
 from scapy.data import ETH_P_ALL
-#import pandas as pd
+import math
 import logging
 import sys
 import signal
@@ -14,6 +14,7 @@ from uuid import getnode as get_mac
 import subprocess
 import signal
 signal.signal(signal.SIGHUP, signal.SIG_IGN)
+
 # Constants
 MOD_PORT = 12001
 MOD_IP = "172.16.131.64"
@@ -25,7 +26,7 @@ GROUND_TRUTH_FILE = ''
 FIM_TABLE_SIZE = 200
 
 # Variables
-logging.basicConfig(level=logging.INFO, filename=MODULE+'.log', filemode='a', format='%(name)s - %(asctime)s - %(levelname)s  - %(message)s')
+logging.basicConfig(level=logging.INFO, filename='/var/log/'+MODULE+'.log', filemode='a', format='%(name)s - %(asctime)s - %(levelname)s  - %(message)s')
 GROUND_TRUTH = []
 COMM_HANDLE = None
 flow_queue = asyncio.Queue()
@@ -40,6 +41,7 @@ except:
 
 logging.info('Interface: {}, Manager: {}, Subnet:{}'.format(INTERFACE, MOD_IP, IOT_SUBNET))
 
+# arp scan for available IoT devices.
 def find_iot_devices(i_network):
     global IOT_DEVICE_DICT
     conf.iface=INTERFACE
@@ -51,7 +53,7 @@ def find_iot_devices(i_network):
     logging.info('Found these IoT devices: {}'.format(IOT_DEVICE_DICT))
     asyncio.ensure_future(send_event('EVT_GW_DEVICES', list(IOT_DEVICE_DICT.values())))
 
-
+# To manage the stored entries.
 class storage_handler(object):
     def __init__(self):
         self._fim_table_max_size = FIM_TABLE_SIZE
@@ -76,7 +78,9 @@ class storage_handler(object):
                     for k1 in l_ret.keys(): 
                         for k2 in i_val.keys(): 
                             if k1 == k2 and not k1 == 'time':
-                                l_ret[k1] += i_val[k2]    
+                                l_ret[k1] += i_val[k2] 
+                                # Take the mean of the payload.
+                                l_ret[k1] = math.ceil(l_ret[k1]/2)
                     
                     self._fim_table[i_key] = l_ret
                 
@@ -105,21 +109,23 @@ class storage_handler(object):
         except:
             return None
 
-
+# pkt processing
 class packet_to_dict(object):
     def __init__(self, i_dev_mac_ip):
+        self._max_entries = 500
         self._conn_table = {}
         self._dns_dict = {}
-        self._out_dict = {}
+        self._conn_list = []
         self._pkt = None
         self._device_mac_ip = i_dev_mac_ip
-        #self._device_ips = i_device_ips
 
     def add(self, i_pkt):
         self._pkt = i_pkt
-        self._check_dns()
-        if len(self._conn_table) == 5000:
-            logging.error('Connection table entries reached maximum.')
+        if len(self._conn_table) == 3 * self._max_entries:
+            logging.info('Clearing stale table entries.')
+            for conn in self._conn_list[:-1*self._max_entries]:
+                self._conn_list.remove(conn)
+                del self._conn_table[conn]
         return self._extract()
 
     def _check_dns(self):
@@ -167,14 +173,16 @@ class packet_to_dict(object):
         elif dst in self._device_mac_ip.values():
             direction = 1
         elif smac in self._device_mac_ip.keys():
+            # If src/dst IP is not there but mac is, it means spoofing.
             direction = 0
             logging.info('Spoof: {} {} {} {}'.format(smac, dmac, src,dst))
             spoof = True
         else:
-            direction = None
+            return None
 
 
-        if (not direction is None and (self._pkt['IP'].proto == 6 or self._pkt['IP'].proto == 17)):
+        if (self._pkt['IP'].proto == 6 or self._pkt['IP'].proto == 17):
+            self._check_dns()
             sip = self._get_domain_name(src)
             dip = self._get_domain_name(dst)
             proto = self._pkt['IP'].proto
@@ -185,10 +193,10 @@ class packet_to_dict(object):
             if proto == 6:
                 sport = self._pkt['TCP'].sport
                 dport = self._pkt['TCP'].dport
-                if self._pkt['TCP'].flags.flagrepr().find('P') >=0:
+                if str(self._pkt['TCP'].flags).find('P') >=0:
                     pflag = 1
 
-                if self._pkt['TCP'].flags.flagrepr() == 'S':
+                if str(self._pkt['TCP'].flags) == 'S':
                     sflag = 1
 
             elif proto == 17:
@@ -210,8 +218,12 @@ class packet_to_dict(object):
 
             if temp_key_1 in self._conn_table.keys():
                 key = self._conn_table[temp_key_1]['key']
+                self._conn_list.remove(temp_key_1)
+                self._conn_list.append(temp_key_1)
             elif temp_key_2 in self._conn_table.keys():
                 key = self._conn_table[temp_key_2]['key']
+                self._conn_list.remove(temp_key_2)
+                self._conn_list.append(temp_key_2)
                 temp_key = temp_key_2
             else:
                 if direction == 0:
@@ -219,6 +231,7 @@ class packet_to_dict(object):
                 else:
                     key = dip+","+sip+","+str(proto)+","+str(dport)+","+str(direction)
                 self._conn_table[temp_key_1] = {'dir':direction, 'key':key}
+                self._conn_list.append(temp_key_1)
             
             if direction == self._conn_table[temp_key]['dir']:
                 sport = str(sport)
@@ -363,6 +376,7 @@ async def comm_connect():
     try:
         COMM_HANDLE = await websockets.connect('ws://{}:{}/{}'.format(MOD_IP, MOD_PORT, MODULE))
         logging.debug("Connected to Master")
+        # This can be kept as seperate task and IoT devices can be discovered dynamically.
         find_iot_devices(IOT_SUBNET)
         asyncio.ensure_future(recv_event())
     except:
