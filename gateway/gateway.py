@@ -18,7 +18,7 @@ signal.signal(signal.SIGHUP, signal.SIG_IGN)
 # Constants
 MOD_PORT = 12001
 MOD_IP = "172.16.131.64"
-MODULE = 'gateway_'+str(get_mac())
+MODULE = 'gateway' 
 INTERFACE = "ens4"
 SLEEP_DURATION = 20
 IOT_DEVICE_DICT = {}
@@ -35,10 +35,12 @@ try:
     MOD_IP = sys.argv[1]
     INTERFACE = sys.argv[2]
     IOT_SUBNET = sys.argv[3]
+    GW_ID = sys.argv[4]
 except:
-    logging.error('mod_ip/interface/iot_subnet not configured. Exiting.')
+    logging.error('mod_ip/interface/iot_subnet/gw_id not configured. Exiting.')
     sys.exit('Exiting.')
 
+MODULE += GW_ID
 logging.info('Interface: {}, Manager: {}, Subnet:{}'.format(INTERFACE, MOD_IP, IOT_SUBNET))
 
 # arp scan for available IoT devices.
@@ -112,7 +114,7 @@ class storage_handler(object):
 # pkt processing
 class packet_to_dict(object):
     def __init__(self, i_dev_mac_ip):
-        self._max_entries = 500
+        self._del_entries = 500
         self._conn_table = {}
         self._dns_dict = {}
         self._conn_list = []
@@ -121,11 +123,14 @@ class packet_to_dict(object):
 
     def add(self, i_pkt):
         self._pkt = i_pkt
-        if len(self._conn_table) == 3 * self._max_entries:
+        if len(self._conn_table) ==  3*self._del_entries:
             logging.info('Clearing stale table entries.')
-            for conn in self._conn_list[:-1*self._max_entries]:
-                self._conn_list.remove(conn)
-                del self._conn_table[conn]
+            try:
+                for conn in self._conn_list[:-1*self._del_entries]:
+                    self._conn_list.remove(conn)
+                    del self._conn_table[conn]
+            except:
+                logging.error(sys.exc_info())
         return self._extract()
 
     def _check_dns(self):

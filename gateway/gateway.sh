@@ -9,7 +9,8 @@ else
     export -p PATH=$PATH:/usr/sbin/
     if=`netstat -ai | grep ens | awk 'NR==2 {print $1}'`
     octet3=`ip a | grep "inet.*ens3" | awk '{print $2}' | cut -d "." -f 4 | cut -d "/" -f 1`
-    ip=172.16.$((octet3-50)).1
+    id=$((octet3-50))
+    ip=172.16.$id.1
     /sbin/ifconfig $if $ip/24 up
     counter=1
     while [ $counter -le 10 ];do
@@ -19,5 +20,5 @@ else
         fi        
         ((counter++))
     done
-    python3 /tmp/gateway.py 172.16.131.64 $if $ip/24 &
+    python3 /tmp/gateway.py 172.16.131.64 $if $ip/24 $id &
 fi
