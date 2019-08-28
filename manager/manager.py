@@ -22,6 +22,10 @@ lock = asyncio.Lock()
 LAST_KEY_COUNT = 0.0
 TOTAL_KEYS = 0.0
 
+LINE_LIMIT = 1000
+local_content = []
+COUNT=0
+
 logging.basicConfig(level=logging.INFO, filename='log_manager.log', filemode='a', format='%(name)s - %(asctime)s - %(levelname)s  - %(message)s')
 
 class sqliteDb(object):
@@ -190,20 +194,27 @@ def get_all_entries():
                     logging.error('Unknown direction entries in db.')
     df_w = pd.DataFrame(ret_list)
     df_w.to_csv('entries_'+str(time.time())+'.csv', header=['dir', 'intIP', 'extIP', 'sport', 'dport', 'cntBin', 'sizeBin'],index=False)    
-    
 
-
-async def sql_task():
-    while True:
-        (i,j) = await db_push_q.get()
-        async with lock:
-            sql.update_key(i,j)
+async def write_to_file(i_content):
+    global COUNT
+    file_name = 'entries_'+str(COUNT)+'.txt'
+    logging.info('Writing to {}'.format(file_name))
+    with open(file_name, 'w') as writer:
+        writer.write('intIP,extIP,proto,dport,dir,sport,incount,outcount,insize,outsize,scount,pcount,time\n')
+        writer.writelines(i_content)
+    COUNT+=1
 
 # Process connection anomaly event.
 def conn_anomaly(i_payload: dict):
-
+    global local_content
     for i,j in i_payload['key_val'].items():
-        asyncio.ensure_future(db_push_q.put((i,j)))
+        temp=i+','+str(j['incount'])+','+str(j['outcount'])+','+str(j['insize'])+','+str(j['outsize'])+','\
+            +str(j['scount'])+','+str(j['pcount'])+','+str(j['time'])+'\n'
+        local_content.append(temp)
+    
+    if len(local_content) >= LINE_LIMIT:
+        asyncio.ensure_future(write_to_file(local_content.copy()))
+        local_content.clear()
 
 
 # Send the event to a gateway.
@@ -263,7 +274,7 @@ async def recv_module_event(websocket, path):
     try:
         while(True) :
             msg = await websocket.recv()
-            logging.info("Received msg: {}".format(msg))
+            logging.debug("Received msg: {}".format(msg))
             await process_msg(msg, websocket)
 
     except websockets.exceptions.ConnectionClosed:
@@ -275,13 +286,13 @@ async def recv_module_event(websocket, path):
         logging.info(sys.exc_info())   
         
 
-sql = sqliteDb("/tmp/db.db")
+#sql = sqliteDb("/tmp/db.db")
 
 EVENT_LOOP = asyncio.get_event_loop()
 task = websockets.serve(recv_module_event, '0.0.0.0', MOD_PORT)
 
 EVENT_LOOP.run_until_complete(task)
-asyncio.ensure_future(sql_task())
+#asyncio.ensure_future(sql_task())
 
 start_time = time.time()
 
@@ -290,7 +301,7 @@ try:
 except KeyboardInterrupt:
     pass
 finally:
-    get_all_entries()
+    #get_all_entries()
     logging.info('Running time {} seconds. Rx keys: {}. Unique Keys: {}'.format(time.time() - start_time, TOTAL_KEYS, sql.get_count()))
-    sql.db_close()
+    #sql.db_close()
     logging.info('!!!! Module Closed !!!!.')
