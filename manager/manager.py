@@ -302,6 +302,6 @@ except KeyboardInterrupt:
     pass
 finally:
     #get_all_entries()
-    logging.info('Running time {} seconds. Rx keys: {}. Unique Keys: {}'.format(time.time() - start_time, TOTAL_KEYS, sql.get_count()))
+    logging.info('Running time {} seconds. Rx keys: {}.'.format(time.time() - start_time, TOTAL_KEYS))
     #sql.db_close()
     logging.info('!!!! Module Closed !!!!.')

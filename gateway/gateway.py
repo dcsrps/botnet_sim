@@ -6,7 +6,6 @@ import os
 from scapy.config import conf
 from scapy.all import sniff, Ether, ARP, srp, conf 
 from scapy.data import ETH_P_ALL
-import math
 import logging
 import sys
 import signal
@@ -23,7 +22,8 @@ INTERFACE = "ens4"
 SLEEP_DURATION = 20
 IOT_DEVICE_DICT = {}
 GROUND_TRUTH_FILE = ''
-FIM_TABLE_SIZE = 200
+FIM_TABLE_SIZE = 1000
+SAFE_PORTS = ['67', '68', '53', '123']
 
 # Variables
 logging.basicConfig(level=logging.INFO, filename='/var/log/'+MODULE+'.log', filemode='a', format='%(name)s - %(asctime)s - %(levelname)s  - %(message)s')
@@ -81,8 +81,6 @@ class storage_handler(object):
                         for k2 in i_val.keys(): 
                             if k1 == k2 and not k1 == 'time':
                                 l_ret[k1] += i_val[k2] 
-                                # Take the mean of the payload.
-                                l_ret[k1] = math.ceil(l_ret[k1]/2)
                     
                     self._fim_table[i_key] = l_ret
                 
@@ -113,20 +111,21 @@ class storage_handler(object):
 
 # pkt processing
 class packet_to_dict(object):
-    def __init__(self, i_dev_mac_ip):
-        self._del_entries = 500
+    def __init__(self, i_dev_mac_ip, i_safe_ports):
+        self._del_entries = 100
         self._conn_table = {}
         self._dns_dict = {}
         self._conn_list = []
+        self._safe_ports = i_safe_ports
         self._pkt = None
         self._device_mac_ip = i_dev_mac_ip
 
     def add(self, i_pkt):
         self._pkt = i_pkt
-        if len(self._conn_table) ==  3*self._del_entries:
+        if len(self._conn_table) ==  10*self._del_entries:
             logging.info('Clearing stale table entries.')
             try:
-                for conn in self._conn_list[:-1*self._del_entries]:
+                for conn in self._conn_list[:-2*self._del_entries]:
                     self._conn_list.remove(conn)
                     del self._conn_table[conn]
             except:
@@ -180,14 +179,16 @@ class packet_to_dict(object):
         elif smac in self._device_mac_ip.keys():
             # If src/dst IP is not there but mac is, it means spoofing.
             direction = 0
-            logging.info('Spoof: {} {} {} {}'.format(smac, dmac, src,dst))
+            #logging.info('Spoof: {} {} {} {}'.format(smac, dmac, src,dst))
             spoof = True
         else:
             return None
 
 
         if (self._pkt['IP'].proto == 6 or self._pkt['IP'].proto == 17):
-            self._check_dns()
+            if not spoof:
+                self._check_dns()
+
             sip = self._get_domain_name(src)
             dip = self._get_domain_name(dst)
             proto = self._pkt['IP'].proto
@@ -231,6 +232,9 @@ class packet_to_dict(object):
                 self._conn_list.append(temp_key_2)
                 temp_key = temp_key_2
             else:
+                if str(dport) in self._safe_ports:
+                    return None
+
                 if direction == 0:
                     key = sip+","+dip+","+str(proto)+","+str(dport)+","+str(direction)
                 else:
@@ -269,6 +273,7 @@ async def periodic_task():
             send_fim_entries(fim)
             store_handle._empty_fim() 
 
+
 async def conn_task():
     while True:
         l_ret = await flow_queue.get()
@@ -302,6 +307,7 @@ def set_ground_truth(i_data):
     logging.debug("Ground truth is {}".format(GROUND_TRUTH))
     """
 
+
 def process_packet():
     l_pkt = SNIFF_SOCK.recv()
 
@@ -316,6 +322,7 @@ def process_packet():
         else:
             # add behavioral case
             pass
+
 
 async def recv_event():
     global COMM_HANDLE
@@ -335,6 +342,7 @@ async def recv_event():
     COMM_HANDLE = None
 
     asyncio.ensure_future(comm_connect())
+
 
 async def send_event(event, data):
     global MODULE, COMM_HANDLE
@@ -391,7 +399,7 @@ async def comm_connect():
 
 signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
-pkt_dict = packet_to_dict(IOT_DEVICE_DICT)
+pkt_dict = packet_to_dict(IOT_DEVICE_DICT, SAFE_PORTS)
 store_handle = storage_handler()
 
 SNIFF_SOCK = conf.L2listen(type=ETH_P_ALL, iface=INTERFACE, filter='ip')
