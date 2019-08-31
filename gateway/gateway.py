@@ -214,7 +214,7 @@ class packet_to_dict(object):
 
             if spoof:
                 key = sip+","+dip+","+str(proto)+","+str(dport)+","+str(direction)
-                return {'key': key, 'values': {'sport': sport, 'insize': 0, 'outsize': length, 'incount': 0,\
+                return {'key': key, 'values': {'sport': str(sport), 'insize': 0, 'outsize': length, 'incount': 0,\
                      'outcount': 1, 'pcount':pflag, 'scount':sflag, 'time':time}}
 
             temp_key_1 = sip+","+dip+","+str(proto)+","+str(sport)+","+str(dport)
@@ -232,9 +232,6 @@ class packet_to_dict(object):
                 self._conn_list.append(temp_key_2)
                 temp_key = temp_key_2
             else:
-                if str(dport) in self._safe_ports:
-                    return None
-
                 if direction == 0:
                     key = sip+","+dip+","+str(proto)+","+str(dport)+","+str(direction)
                 else:
