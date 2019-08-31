@@ -244,6 +244,9 @@ class packet_to_dict(object):
             else:
                 sport = str(dport)
 
+            if key.split(',')[3] in self._safe_ports:
+                return None
+
             if direction == 0:
                 return {'key': key, 'values': {'sport': sport, 'insize': 0, 'outsize': length, 'incount': 0,\
                      'outcount': 1, 'pcount':pflag, 'scount':sflag, 'time':time}}
