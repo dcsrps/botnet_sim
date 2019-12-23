@@ -24,10 +24,10 @@ except:
 MOD_PORT = 4567
 
 COMM_HANDLE = None
-SCAN_NETWORKS = None
-SCAN_PORTS = None
+SCAN_NETWORK = None
+SCAN_PORT = None
 SCAN_RATE = 1
-SPOOFED_NETWORK = "10.2.0.0/16"
+SPOOFED_NETWORK = "10.0.0.0/8"
 
 # Generate a random ip address from a given network (192.168.0.0/24, 10.0.0.0/30).
 def get_ip_address(i_network):

