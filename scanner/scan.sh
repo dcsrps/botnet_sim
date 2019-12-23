@@ -6,5 +6,5 @@ then
 else 
     echo "Starting process."
     /usr/bin/curl -X GET https://raw.githubusercontent.com/dcsrps/botnet_sim/master/scanner/scanner.py > /tmp/scanner.py
-    python3 /tmp/scanner.py 172.16.135.194 &
+    python3 /tmp/scanner.py 172.19.75.109 &
 fi
