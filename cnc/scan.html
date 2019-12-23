@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Scan Setup</title>
+</head>
+<body>
+<h1>Scanners</h1>
+
+Connected Scanners: <label id="botcount">0</label>
+<br>
+<hr>
+<br>
+<form id="frm1">
+  Address Domain:<br>
+ <input type="text" id="ip" value="10.0.0.0/28,10.0.1.0/28,">
+  <br><br>
+  Port:<br>
+ <input type="text" id="port" value="22,80">
+  <br><br>
+  Scan Frequency:<br>
+  <select id="frequency">
+      <option value="0">Random</option>
+      <option value="1">Low</option>
+      <option value="2">Medium</option>
+      <option value="3">High</option>
+    </select>
+<br><br>
+  <input type="submit" value="Set" onClick="sendCommand();return false;">
+</form>
+</body>
+
+<script type="text/javascript">
+    var ews = new WebSocket("ws://172.16.135.194:4567/scan");
+
+    ews.onopen = function (event) {
+        console.log("Connection opened."); 
+    };
+   
+    ews.onmessage = function (event) {
+          console.log("Received Msg."); 
+          var msg = JSON.parse(event.data);
+          console.log(msg);
+          document.getElementById("botcount").innerHTML = msg.count;
+          
+    };
+
+    ews.onError = function (event) {
+          console.log("Error Occured."); 
+          location.reload();         
+    };
+
+    ews.onClose = function (event) {
+          console.log("Connection Closed."); 
+          location.reload();          
+    };
+
+    function sendCommand(){
+        if(ews !== null)
+        {
+            code = document.getElementById("frequency").value;
+            ip = document.getElementById("ip").value;
+            port = document.getElementById("port").value;
+            var msg = {
+                "event" : "EVT_SETUP_S",
+                "frequency" : code,
+                "ip" : ip,
+                "port" : port
+            };
+            document.getElementById("ip").value = ip
+            document.getElementById("port").value = port
+            console.log(msg)
+            ews.send(JSON.stringify(msg));
+        }
+        else
+        {
+            console.log("Connection not available."); 
+        }
+    };
+    </script>
+</html>
