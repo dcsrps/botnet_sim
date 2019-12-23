@@ -20,5 +20,5 @@ else
         fi        
         ((counter++))
     done
-    python3 /tmp/gateway.py 172.16.131.64 $if $ip/24 $id &
+    python3 /tmp/gateway.py 172.19.75.109 $if $ip/24 $id &
 fi
