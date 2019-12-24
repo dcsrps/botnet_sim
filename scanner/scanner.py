@@ -74,7 +74,7 @@ async def scan():
             print("[E] Unknown scan parameters.")
             return
 
-        for _ in range(randint(int(max_ips/2), int(max_ips))):
+        for _ in range(max_ips):
             t_scan = tcp_scan( get_ip_address(SPOOFED_NETWORK) ,get_ip_address(choice(SCAN_NETWORK)), int(choice(SCAN_PORT)))       
             t_scan.start()
         await asyncio.sleep(duration)
