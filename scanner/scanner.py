@@ -99,25 +99,25 @@ async def process_msg(msg):
     payload = msg['data']
 
     if event == "EVT_SETUP":
-        local_data =  payload['ip'].split(",")
+        local_data =  payload['ip']
         if local_data.find('NA') < 0:
-            SCAN_NETWORK = local_data
+            SCAN_NETWORK = local_data.split(",")
         
-        local_data = payload['port'].split(",")
+        local_data = payload['port']
         if local_data.find('NA') < 0:
-            SCAN_PORT = local_data
+            SCAN_PORT = local_data.split(",")
 
         SCAN_RATE = int(payload['frequency'])
 
     elif event == "EVT_INIT":
     
-        local_data =  payload['ip'].split(",")
+        local_data =  payload['ip']
         if local_data.find('NA') < 0:
-            SCAN_NETWORK = local_data
+            SCAN_NETWORK = local_data.split(",")
         
-        local_data = payload['port'].split(",")
+        local_data = payload['port']
         if local_data.find('NA') < 0:
-            SCAN_PORT = local_data
+            SCAN_PORT = local_data.split(",")
             
         SCAN_RATE = int(payload['frequency'])
       
