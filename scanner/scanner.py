@@ -59,16 +59,16 @@ async def scan():
     while True:
         max_ips = 20
         if SCAN_RATE == 1:
-            max_ips = 10
+            max_ips = 30
             duration = 10.0
         elif SCAN_RATE == 2:
-            max_ips = 20
+            max_ips = 40
             duration = 5.0
         elif SCAN_RATE == 3:
-            max_ips = 30
-            duration = 1.0
+            max_ips = 50
+            duration = 2.0
         elif SCAN_RATE == 0:
-            max_ips = randint(20,30)
+            max_ips = randint(20,60)
             duration = randint(10,30)
         else:
             print("[E] Unknown scan parameters.")
