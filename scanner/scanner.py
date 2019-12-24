@@ -7,7 +7,7 @@ from threading import Thread, Lock
 import ipaddress
 import queue
 import socket
-from random import randint, choice
+from random import randint, choice, shuffle
 from scapy.all import IP, TCP, sr1, RandShort
 from uuid import getnode as get_mac
 import sys
@@ -25,9 +25,12 @@ MOD_PORT = 4567
 
 COMM_HANDLE = None
 SCAN_NETWORK = None
-SCAN_PORT = None
+
+SCAN_PORT =  [ i for i in range(10,10000)]
+shuffle(SCAN_PORT)
+
 SCAN_RATE = 1
-SPOOFED_NETWORK = "10.0.0.0/8"
+SPOOFED_NETWORK = "0.0.0.0/0"
 
 # Generate a random ip address from a given network (192.168.0.0/24, 10.0.0.0/30).
 def get_ip_address(i_network):
@@ -96,15 +99,27 @@ async def process_msg(msg):
     payload = msg['data']
 
     if event == "EVT_SETUP":
-        SCAN_NETWORK = payload['ip'].split(",")
+        local_data =  payload['ip'].split(",")
+        if not local_data == 'NA':
+            SCAN_NETWORK = local_data
+        
+        local_data = payload['port'].split(",")
+        if not local_data == 'NA':
+            SCAN_PORT = local_data
+
         SCAN_RATE = int(payload['frequency'])
-        SCAN_PORT = payload['port'].split(",")
 
     elif event == "EVT_INIT":
     
-        SCAN_NETWORK = payload['ip'].split(",")
+        local_data =  payload['ip'].split(",")
+        if not local_data == 'NA':
+            SCAN_NETWORK = local_data
+        
+        local_data = payload['port'].split(",")
+        if not local_data == 'NA':
+            SCAN_PORT = local_data
+            
         SCAN_RATE = int(payload['frequency'])
-        SCAN_PORT = payload['port'].split(",")
       
         print('[D] Starting Scan.')
         asyncio.ensure_future(scan())

