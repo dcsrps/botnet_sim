@@ -291,9 +291,10 @@ def handle_msg(i_transport, i_data, i_addr):
 
 def get_my_ip():
     global MY_IP, MODULE
+
     f = os.popen("ip a | grep 'scope global' | awk '{ print $NF }'")
     local_eth = f.read().rstrip()
-    f = os.popen("ip address show {} | grep -w 'inet' | awk '{ print $2  }' | cut -d '/' -f 1".format(local_eth))
+    f = os.popen("ip address show "+local_eth+" | grep -w 'inet' | awk '{print $2}' | cut -d '/' -f 1")
     # Keep some verifier, see the returned item is ok or not.
     MY_IP = f.read().rstrip()
     MODULE = 'bot_'+MY_IP
