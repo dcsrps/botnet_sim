@@ -91,12 +91,12 @@ def send_msg(i_msg, i_ip, i_port):
 def get_my_ip():
     f = os.popen("ip a | grep 'scope global' | awk '{ print $NF }'")
     local_eth = f.read().rstrip()
-    f = os.popen('/sbin/ifconfig {} | grep "inet" | cut -d: -f2 | cut -d" " -f1'.format(local_eth))
+    f = os.popen("ip address show {} | grep -w 'inet' | awk '{ print $2  }' | cut -d '/' -f 1".format(local_eth))
     # Keep some verifier, see the returned item is ok or not.
     return f.read().rstrip()
+   
 
 loop = asyncio.get_event_loop()
-
 
 # Create a node and start listening on port 5678
 node = Server()
