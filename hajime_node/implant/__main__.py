@@ -104,14 +104,14 @@ def get_my_ip():
 MY_IP = get_my_ip()
 loop = asyncio.get_event_loop()
 
-print('[+]Starting UDP server on {}.'.format(UDP_PORT))
-server = loop.create_server(EchoServerProtocol, "0.0.0.0", UDP_PORT)
-loop.run_until_complete(server)
-
 # Create a node and start listening on port 5678
 node = Server()
 loop.run_until_complete(node.listen(BOOTSTARP_PORT))
 loop.run_until_complete(node.bootstrap(BOOTSTRAP_NODES))
+
+print('[+]Starting UDP server on {}.'.format(UDP_PORT))
+listen = loop.create_datagram_endpoint(EchoServerProtocol, local_addr=('0.0.0.0', UDP_PORT))
+transport, protocol = loop.run_until_complete(listen)
 
 print('[+]Getting ATK_FILES.')
 ATK_HOLDERS = None
