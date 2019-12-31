@@ -140,13 +140,11 @@ while True:
 
 
 # Start the attack module??
-f = os.popen("python3 {} {}&".format(ATK_FILE, BOOTSTARP_IP))
-print(f.read())
-
+os.system("python3 {} {}&".format(ATK_FILE, BOOTSTARP_IP))
 
 if __name__ == '__main__':
   try:
-    print('Starting main.')
+    print('[+] Starting main.')
     loop.run_forever()
   except KeyboardInterrupt:
     pass
