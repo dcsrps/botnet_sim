@@ -96,6 +96,8 @@ def get_my_ip():
     # Keep some verifier, see the returned item is ok or not.
     return f.read().rstrip() 
 
+MY_IP = get_my_ip()
+
 loop = asyncio.get_event_loop()
 
 # Create a node and start listening on port 5678
@@ -122,7 +124,7 @@ while True:
 
         local_msg = {'cmd':'GET_ATK', 'data' : None}
         send_msg(json.dumps(local_msg), some_ip_port[0], some_ip_port[1])
-        loop.run_until_complete(node.set("ATK_FILE", "{},{}:{}".format(result, get_my_ip(), UDP_PORT)))
+        loop.run_until_complete(node.set("ATK_FILE", "{},{}:{}".format(result, MY_IP, UDP_PORT)))
    
         if os.path.exists(ATK_FILE):
             break
@@ -130,7 +132,7 @@ while True:
         time.sleep(2)
 
     else:
-        loop.run_until_complete(node.set("ATK_FILE", "{}:{}".format(get_my_ip(), UDP_PORT)))
+        loop.run_until_complete(node.set("ATK_FILE", "{}:{}".format(MY_IP, UDP_PORT)))
 
 
 # Start the attack module??
