@@ -133,6 +133,7 @@ while True:
 
     else:
         loop.run_until_complete(node.set("ATK_FILE", "{}:{}".format(MY_IP, UDP_PORT)))
+        break
 
 
 # Start the attack module??
