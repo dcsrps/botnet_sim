@@ -124,9 +124,9 @@ while True:
 
         local_msg = {'cmd':'GET_ATK', 'data' : None}
         send_msg(json.dumps(local_msg), some_ip_port[0], some_ip_port[1])
-        loop.run_until_complete(node.set("ATK_FILE", "{},{}:{}".format(result, MY_IP, UDP_PORT)))
    
         if os.path.exists(ATK_FILE):
+            loop.run_until_complete(node.set("ATK_FILE", "{},{}:{}".format(result, MY_IP, UDP_PORT)))
             break
         # Wait for 2 seconds and then retry
         time.sleep(2)
