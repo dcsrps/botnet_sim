@@ -111,7 +111,7 @@ MY_IP = get_my_ip()
 loop = asyncio.get_event_loop()
 
 print('[+]Starting UDP server on {}.'.format(UDP_PORT))
-asyncio.run(main_server('0.0.0.0', UDP_PORT))
+loop.run_until_complete(main_server('0.0.0.0', UDP_PORT))
 
 # Create a node and start listening on port 5678
 node = Server()
