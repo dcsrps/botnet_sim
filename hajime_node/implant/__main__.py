@@ -96,7 +96,7 @@ def send_msg(i_msg, i_ip, i_port):
 async def main_server(host, port):
     #loop = asyncio.get_running_loop()
     server = await loop.create_server(EchoServerProtocol, host, port)
-    await server.serve_forever()
+    await loop.run_until_complete(server) 
 
 
 def get_my_ip():
