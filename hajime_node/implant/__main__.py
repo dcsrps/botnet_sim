@@ -110,6 +110,9 @@ def get_my_ip():
 MY_IP = get_my_ip()
 loop = asyncio.get_event_loop()
 
+print('[+]Starting UDP server on {}.'.format(UDP_PORT))
+asyncio.run(main_server('0.0.0.0', UDP_PORT))
+
 # Create a node and start listening on port 5678
 node = Server()
 loop.run_until_complete(node.listen(BOOTSTARP_PORT))
@@ -145,11 +148,10 @@ while True:
 f = os.popen("python3 {} {}&".format(ATK_FILE, BOOTSTARP_IP))
 print(f.read())
 
-print('[+]Starting UDP server on {}.'.format(UDP_PORT))
-asyncio.run(main_server('0.0.0.0', UDP_PORT))
 
 if __name__ == '__main__':
   try:
+    print('Starting main.')
     loop.run_forever()
   except KeyboardInterrupt:
     pass
