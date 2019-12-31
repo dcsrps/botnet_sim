@@ -93,12 +93,6 @@ def send_msg(i_msg, i_ip, i_port):
     #loop.run_until_complete(coro)
 
 
-async def main_server(host, port):
-    #loop = asyncio.get_running_loop()
-    server = await loop.create_server(EchoServerProtocol, host, port)
-    await loop.run_until_complete(server) 
-
-
 def get_my_ip():
     f = os.popen("ip a | grep 'scope global' | awk '{ print $NF }'")
     local_eth = f.read().rstrip()
@@ -111,7 +105,8 @@ MY_IP = get_my_ip()
 loop = asyncio.get_event_loop()
 
 print('[+]Starting UDP server on {}.'.format(UDP_PORT))
-loop.run_until_complete(main_server('0.0.0.0', UDP_PORT))
+server = await loop.create_server(EchoServerProtocol, host, port)
+loop.run_until_complete(server)
 
 # Create a node and start listening on port 5678
 node = Server()
