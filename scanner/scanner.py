@@ -24,7 +24,7 @@ except:
 MOD_PORT = 4567
 
 COMM_HANDLE = None
-SCAN_NETWORK = None
+SCAN_NETWORK = ['172.16.1.0/27','172.16.2.0/27','172.16.3.0/27','172.16.4.0/27','172.16.5.0/27','172.16.6.0/27','172.16.7.0/27']
 
 SCAN_PORT =  [ i for i in range(10,10000)]
 shuffle(SCAN_PORT)
@@ -99,6 +99,7 @@ async def process_msg(msg):
     payload = msg['data']
 
     if event == "EVT_SETUP":
+        """
         local_data =  payload['ip']
         if local_data.find('NA') < 0:
             SCAN_NETWORK = local_data.split(",")
@@ -106,11 +107,11 @@ async def process_msg(msg):
         local_data = payload['port']
         if local_data.find('NA') < 0:
             SCAN_PORT = local_data.split(",")
-
+        """
         SCAN_RATE = int(payload['frequency'])
 
     elif event == "EVT_INIT":
-    
+        """
         local_data =  payload['ip']
         if local_data.find('NA') < 0:
             SCAN_NETWORK = local_data.split(",")
@@ -118,7 +119,7 @@ async def process_msg(msg):
         local_data = payload['port']
         if local_data.find('NA') < 0:
             SCAN_PORT = local_data.split(",")
-            
+        """    
         SCAN_RATE = int(payload['frequency'])
       
         print('[D] Starting Scan.')
