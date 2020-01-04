@@ -42,9 +42,7 @@ class EchoClientProtocol:
         print('Error received:', exc)
 
     def connection_lost(self, exc):
-        print("Socket closed, stop the event loop")
-        loop = asyncio.get_event_loop()
-        loop.stop()
+        print("Connection lost.")
 
 
 class EchoServerProtocol:
